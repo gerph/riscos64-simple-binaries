@@ -3,7 +3,7 @@
 DIS = ~/projects/RO/pyromaniac/utils/riscos-dumpi --arm64
 CROSS_ROOT = ${shell echo $$CROSS_ROOT}
 
-DEFAULT_GOAL = hello_world,ff8
+DEFAULT_GOAL = hello_world,ff8 cog,ff8
 
 all: ${DEFAULT_GOAL}
 
