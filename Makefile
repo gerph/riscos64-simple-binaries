@@ -3,7 +3,7 @@
 DIS = ~/projects/RO/pyromaniac/utils/riscos-dumpi --arm64
 CROSS_ROOT = ${shell echo $$CROSS_ROOT}
 
-DEFAULT_GOAL = mytest,ff8
+DEFAULT_GOAL = hello_world,ff8
 
 all: ${DEFAULT_GOAL}
 
@@ -39,11 +39,7 @@ else
 %,ff8: %.bin
 	aarch64-unknown-linux-gnu-objcopy -O binary -j .text $? $@
 
-#	otool $? -t -X | \
-#        cut -c 18- | \
-#        perl -ne 'for my $$x (split) { next if (!$$x); my $$v = reverse(pack("H8", $$x)) ; print $$v; }' > $@
-
-%.dis: %.bin
+%.dis: %,ff8
 	${DIS} $? > $@
 	cat $@
 
