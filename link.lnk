@@ -1,0 +1,13 @@
+SECTIONS
+{
+   /* Origin */
+   . = 0x8000;
+
+   .text BLOCK(4K) : ALIGN(4K)
+   {
+       start.o(.text)
+       *(.text)
+       *(.data)
+       *(.rodata)
+   }
+}
