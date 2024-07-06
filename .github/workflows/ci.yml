@@ -1,0 +1,98 @@
+---
+# RISC OS CI build through build.riscos.online
+#
+# To reuse this configuration with your own repository:
+#
+#   - Create a .robuild.yaml to describe what should be built on RISC OS.
+#       - `jobs.build.script` should be a list of commands to run on RISC OS
+#       - `jobs.build.artifacts.path` should be the directory to zip.
+#   - Create a VersionNum file if you wish to use the automated versioning
+#     in the same style as the RISC OS sources. [optional]
+#   - Update the 3rd step ('give the archive a versioned name') to give a
+#     suitable name for the archive.
+#   - Update the 4th step ('upload-artifacts') to include the same names.
+#
+# The 'release' job is triggered when a tag starting with a 'v' is created,
+# which will create a GitHub release for the repository with the name of the
+# version tag. The release will be a draft, and should be updated with
+# changes as you see fit.
+#
+
+name: RISC OS
+
+# Controls when the action will run. Triggers the workflow on:
+#   * push on any branch.
+#   * tag creation for tags beginning with a 'v'
+on:
+  push:
+    branches: ["*"]
+    tags: ["v*"]
+  # Pull request events happen on pull request state transitions, so we probably don't want this here.
+  #pull_request:
+  #  branches: ["*"]
+
+jobs:
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      leafname: ${{ steps.version.outputs.leafname }}
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      - name: Build the binaries
+        run: |
+          make
+
+      - name: Build an archive
+        run: |
+          zip -9r RISCOSBinaries.zip *,ff8
+
+      - name: Give the output a versioned name
+        id: version
+        run: |
+          if [[ -f VersionNum ]] ; then
+              version=$(sed '/MajorVersion / ! d ; s/.*MajorVersion *"\(.*\)"/\1/' VersionNum)
+          else
+              version=$(git rev-parse --short HEAD)
+          fi
+          echo "This is version: $version"
+          leafname="RISCOSBinaries-$version.zip"
+          mv RISCOSBinaries.zip "RISCOSBinaries-$version.zip"
+
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "leafname=$leafname" >> $GITHUB_OUTPUT
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RISCOS-build
+          path: ${{ steps.version.outputs.leafname }}
+        # The artifact that is downloadable from the Actions is actually a zip of the artifacts
+        # that we supply. So it will be a regular Zip file containing a RISC OS Zip file.
+
+  # The release only triggers when the thing that was pushed was a tag starting with 'v'
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - name: Download built RISC OS binary
+        uses: actions/download-artifact@v4
+        with:
+          name: RISCOS-build
+
+      - name: Create Release
+        id: create_release
+        uses: ncipollo/release-action@v1
+        with:
+          prerelease: false
+          draft: true
+          artifacts: "${{ needs.build.outputs.leafname }}"
+          artifactContentType: application/zip

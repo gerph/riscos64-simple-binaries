@@ -22,11 +22,11 @@ ifeq (${CROSS_ROOT},)
 ifneq ($(filter-out all shell dockcross-linux-arm64 clean,${MAKECMDGOALS}),)
 # The command wasn't one of our invocation commands above
 .PHONY: ${MAKECMDGOALS}
-${MAKECMDGOALS}:
+${MAKECMDGOALS}: dockcross-linux-arm64
 	./dockcross-linux-arm64 make ${MAKECMDGOALS}
 else
 .PHONY: ${DEFAULT_GOAL}
-${DEFAULT_GOAL}:
+${DEFAULT_GOAL}: dockcross-linux-arm64
 		./dockcross-linux-arm64 make ${DEFAULT_GOAL}
 endif
 
