@@ -21,9 +21,11 @@ ifeq (${CROSS_ROOT},)
 # If we're outside the docker container, re-run ourselves inside the container
 ifneq ($(filter-out all shell dockcross-linux-arm64 clean,${MAKECMDGOALS}),)
 # The command wasn't one of our invocation commands above
+.PHONY: ${MAKECMDGOALS}
 ${MAKECMDGOALS}:
 	./dockcross-linux-arm64 make ${MAKECMDGOALS}
 else
+.PHONY: ${DEFAULT_GOAL}
 ${DEFAULT_GOAL}:
 		./dockcross-linux-arm64 make ${DEFAULT_GOAL}
 endif
