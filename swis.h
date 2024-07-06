@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 void os_writec(char c);
 char os_readc(void);
 void os_screenmode(int reason, uint32_t modespec);
