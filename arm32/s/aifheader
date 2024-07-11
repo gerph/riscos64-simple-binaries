@@ -1,0 +1,35 @@
+        AREA |Asm$$code|, CODE, READONLY
+
+OS_GenerateError * 0x2b
+OS_Exit          * 0x11
+
+        ENTRY
+_start
+        NOP                             ; was decompression
+        NOP                             ; was reloc
+        NOP                             ; was zero init
+        BL      entry                   ; was image entry
+        SWI     OS_Exit                 ; OS_Exit
+        DCD     0                       ; read only size
+        DCD     0                       ; read write size
+        DCD     0                       ; debug size
+        DCD     0                       ; zero init size
+        DCD     0                       ; debug type
+        DCD     0x8000                  ; linked base address
+        DCD     0                       ; workspace size (obsolete)
+        DCD     64                      ; address mode
+        DCD     0                       ; data base address
+        DCD     0                       ; reserved
+        DCD     0                       ; reserved
+entry
+        ADR     r0, error_block         ; was decompression
+        SWI     OS_GenerateError        ; was reloc
+error_block
+        DCD     0
+        = "AArch64 binaries cannot be run on 32bit RISC OS" ,0
+        ALIGN
+        DCD     0
+
+; Address 0x80
+
+        END

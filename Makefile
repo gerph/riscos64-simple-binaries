@@ -43,10 +43,10 @@ else
 %.o: %.c
 	aarch64-unknown-linux-gnu-gcc ${CFLAGS} -c -o $@ $?
 
-%.bin: %.o | start.o swis.o
+%.bin: %.o | start.o swis.o link.lnk
 	aarch64-unknown-linux-gnu-ld start.o swis.o $? -T link.lnk -o $@
 
-%.map: %.o | start.o swis.o
+%.map: %.o | start.o swis.o link.lnk
 	aarch64-unknown-linux-gnu-ld start.o swis.o $? -T link.lnk -Map $@ -o /dev/null
 
 ifeq (${USE_FUNC_SIGNATURE},1)

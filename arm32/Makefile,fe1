@@ -1,0 +1,46 @@
+#!/usr/bin/env riscos-amu -f
+# Makefile for MyCommand
+#
+
+#
+# Program specific options:
+#
+COMPONENT  = MyCommand
+
+# Specifies additional targets for startup
+#INITTARGET = inittarget
+
+# Specifies additional targets for clean
+#CLEANTARGET = cleantarget
+
+# aif, for linked objects
+# aof, for a partially linked AOF object
+# util, for utilities built with objasm
+# basic, for BASIC tools
+TYPE       = util
+
+# The file to output (defaults ${COMPONENT})
+#TARGET = <filename>
+
+# Comma-separated list of paths to use for includes, such as:
+#	<Lib$Dir>.LibName.
+INCLUDES   =
+
+# Space separated list of defines to set, eg -DDEBUG
+CDEFINES   =
+
+# Space separated list of libraries to link against.
+LIBS       = 
+
+# Objects to build, using the format o.<name> (will be varied for build type)
+OBJS       = o.aifheader
+
+# Space separated list of XML files for building documentation.
+#DOCSRC = <prm-in-xml-sources>
+
+
+include LibraryCommand
+
+
+#---------------------------------------------------------------------------
+# Dynamic dependencies:
