@@ -9,6 +9,8 @@
 .global os_inkey
 .global os_write0
 .global os_newline
+.global os_byte_out1
+
 
 os_writec:
     STP     x29, x30, [sp, #-16]!
@@ -63,8 +65,20 @@ os_inkey:
     MOV     x0, #0x81                   // INKEY
     MOV     x10, #0x6                   // OS_Byte
     SVC     #0
+                                        // Returns R1 = character read
+                                        //         R2 = 0 =>char was read, 27=>escape, 255=>nothing read
+// We are going to return -1 for nothing read, and -2 for escape
+    CMP     x2, #27
+    BEQ     os_inkey_escape
+    CMP     x2, #255
+    CSINV   x0, x1, xzr, NE             // if x2!=255 x0=x1 else x0=-1
+os_inkey_exit:
     LDP     x29, x30, [sp], #16
     RET
+
+os_inkey_escape:
+    MOV     x0, #-2
+    B       os_inkey_exit
 
 os_write0:
     STP     x29, x30, [sp, #-16]!
@@ -77,5 +91,15 @@ os_newline:
     STP     x29, x30, [sp, #-16]!
     MOV     x10, #0x3                   // OS_NewLine
     SVC     #0
+    LDP     x29, x30, [sp], #16
+    RET
+
+// OS_Byte with simple semantics
+// int os_byte_out1(r0, r1, r2) => r1 value on return
+os_byte_out1:
+    STP     x29, x30, [sp, #-16]!
+    MOV     x10, #0x6                   // OS_Byte
+    SVC     #0
+    MOV     x0, x1
     LDP     x29, x30, [sp], #16
     RET
