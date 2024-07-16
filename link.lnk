@@ -49,11 +49,14 @@ SECTIONS
 
         start.o(.text)
         *(.text)
+        . = ALIGN(16);
         _code_end = ABSOLUTE(.);
         _code_size = _code_end - _code_start;
 
         _rodata_start = ABSOLUTE(.);
         *(.rodata)
+        *(.rodata.*)
+        . = ALIGN(16);
         _rodata_end = ABSOLUTE(.);
         _rodata_size = _rodata_end - _rodata_start;
 
@@ -61,6 +64,7 @@ SECTIONS
 
         _data_start = ABSOLUTE(.);
         *(.data)
+        . = ALIGN(16);
         _data_end = ABSOLUTE(.);
         _data_size = _data_end - _data_start;
     } > aif

@@ -1,5 +1,9 @@
 .text
 
+.global _start
+.global exit
+
+
 .balign 4
 _start:
 // Set up the stack pointer
@@ -9,6 +13,7 @@ _start:
         MOV     sp, x1          // Set the stack pointer to our memory limit (maybe this should be implicit now?)
         BL      start
 
+exit:
         MOV     x2, x0
         ADR     x0, return_error
         LDR     x1, abex
