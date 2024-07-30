@@ -91,13 +91,25 @@ else
 
 
 CRT_OBJS = 	\
-			clib.o \
+			clib-assert.o \
+			clib-ctypes.o \
+			clib-io-constants.o \
+			clib-io-file.o \
+			clib-io-fprintf.o \
+			clib-io-printf.o \
+			clib-io-sprintf.o \
+			clib-io-vprintf.o \
+			clib-io.o \
+			clib-kernel.o \
 			clib-main.o \
 			clib-malloc.o \
-			clib-kernel.o \
-			clib-strtol.o \
-			clib-strtod.o \
+			clib-mem.o \
+			clib-qsort.o \
 			clib-strdup.o \
+			clib-string.o \
+			clib-strtod.o \
+			clib-strtol.o \
+			clib-time.o \
 
 OBJS =	${CRT_OBJS} \
 		${TARGET}.o
