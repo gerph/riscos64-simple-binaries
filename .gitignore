@@ -1,6 +1,7 @@
 dockcross-linux-arm64
 *,ff8
 *.o
+*.a
 *.bin
 *.map
 */o32/*

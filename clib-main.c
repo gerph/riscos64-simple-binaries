@@ -1,6 +1,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* Define this to put the arguments on the stack, rather then in the heap */
+#define BUILD_ARGV_ON_STACK
+
 extern int main(int argc, const char *argv[]);
 
 int __main(const char *cli,
@@ -13,7 +16,19 @@ int __main(const char *cli,
     /* FIXME: Malloc heap should start at append */
 
     /* Build argv */
-    char *arg = strdup(cli);
+#ifdef BUILD_ARGV_ON_STACK
+    char arg[strlen(cli) + 1];
+#else
+    char *arg = malloc(strlen(cli) + 1);
+    if (!arg)
+    {
+        os_write0("Not enough memory");
+        os_newline();
+        exit(1);
+    }
+#endif
+    strcpy(arg, cli);
+
     char *p;
     int argc = 0;
     int in_spaces = 1;
@@ -39,8 +54,11 @@ int __main(const char *cli,
     }
 
     /* We now know how many arguments we have, so we can initialise argv */
+#ifdef BUILD_ARGV_ON_STACK
+    char *argv[argc + 1];
+#else
     char **argv = calloc(sizeof(const char *), (argc + 1));
-
+#endif
     in_spaces = 1;
     argc = 0;
     for (p=arg; *p; p++)

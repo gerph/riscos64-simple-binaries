@@ -5,10 +5,11 @@
  * Date:        25 Jul 2024
  ******************************************************************/
 
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#include "swis.h"
 
 /* Some memory */
 #ifndef HEAP_SIZE
@@ -29,7 +30,20 @@ void *malloc (size_t size)
     left -= size;
     if (left < 0)
     {
-        printf("OUT OF MEMORY - need %i bytes\n", size);
+        os_write0("OUT OF MEMORY - need &");
+        unsigned int need = -left;
+        int started = 1;
+        for(int i=60; i >= 0; i-=4)
+        {
+            unsigned int v = (need>>i) & 15;
+            if (v || started || i == 0)
+            {
+                started = 1;
+                os_writec("0123456789ABCDEF"[v]);
+            }
+        }
+        os_write0(" bytes");
+        os_newline();
         exit(1);
     }
     size_t *p = (size_t*)mem;

@@ -1,4 +1,5 @@
 #include "kernel.h"
+#include "swis.h"
 
 void __assert_fail(const char *message)
 {

@@ -111,7 +111,11 @@ CRT_OBJS = 	\
 			clib-strtol.o \
 			clib-time.o \
 
-OBJS =	${CRT_OBJS} \
+
+libcrt.a: ${CRT_OBJS}
+	aarch64-unknown-linux-gnu-ar -rc $@ ${CRT_OBJS}
+
+OBJS =	libcrt.a \
 		${TARGET}.o
 
 %.o: %.c
