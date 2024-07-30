@@ -12,7 +12,7 @@ int myprint(char *str)
     return n;
 }
 
-int start(void)
+int main(int argc, char *argv)
 {
     return myprint("Hello world");
 }

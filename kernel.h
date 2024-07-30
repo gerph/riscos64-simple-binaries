@@ -14,5 +14,9 @@ typedef struct _kernel_swi_regs {
 
 _kernel_oserror *_kernel_swi(int swinum, _kernel_swi_regs *in, _kernel_swi_regs *out);
 
+int _kernel_oscli(const char *cli);
+_kernel_oserror *_kernel_last_oserror(void);
+
+
 #endif
 

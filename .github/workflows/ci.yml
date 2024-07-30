@@ -47,7 +47,7 @@ jobs:
 
       - name: Build the binaries
         run: |
-          make
+          make all
 
       - name: Build an archive
         run: |

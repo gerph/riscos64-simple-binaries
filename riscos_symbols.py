@@ -12,6 +12,8 @@ them into it.
 import sys
 import struct
 
+debug = False
+
 map_file = sys.argv[1]
 bin_file = sys.argv[2]
 
@@ -75,7 +77,8 @@ for addr, symbol in sorted(functions.items()):
     symbol_start = addr - base_address - space_needed
     currently = bin_data[symbol_start:symbol_start + space_needed]
     if currently == nop_bytes * int(space_needed / 4):
-        print("Symbol '%s' can be patched" % (symbol,))
+        if debug:
+            print("Symbol '%s' can be patched at address &%08x" % (symbol, addr))
         pre = bin_data[:symbol_start]
         post = bin_data[symbol_start + space_needed:]
         try:
@@ -87,9 +90,10 @@ for addr, symbol in sorted(functions.items()):
         patch += bytearray([symbol_len, 0,0,255])
         bin_data = pre + patch + post
     else:
-        print("Failed to patch symbol '%s'" % (symbol,))
-        #print("  Currently: %r" % (currently,))
-        #print("  Need:      %r" % (nop_bytes * (space_needed / 4),))
+        if debug:
+            print("Failed to patch symbol '%s'" % (symbol,))
+            #print("  Currently: %r" % (currently,))
+            #print("  Need:      %r" % (nop_bytes * (space_needed / 4),))
 
 with open(bin_file, "wb") as fh:
     fh.write(bin_data)
