@@ -1,6 +1,5 @@
 #include <stdbool.h>
 #include <stdint.h>
-#include "start.h"
 
 #include "cogdata.inc"
 

@@ -1,6 +1,6 @@
 #include <stdarg.h>
 #include <string.h>
-#include "clib-io-vprintf.h"
+#include "io-vprintf.h"
 
 typedef struct outputterstr_t {
     outputter_t out;

@@ -1,4 +1,4 @@
-.text
+.section .init.aif
 
 .global _start
 .global _exit

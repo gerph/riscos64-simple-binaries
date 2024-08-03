@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "swis.h"
-#include "clib-io-vprintf.h"
+#include "io-vprintf.h"
 
 
 static int stdout_write0(outputter_t *out, const char *str)

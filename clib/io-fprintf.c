@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #include "swis.h"
-#include "clib-io-vprintf.h"
+#include "io-vprintf.h"
 
 
 static int file_write0(outputter_t *out, const char *str)
