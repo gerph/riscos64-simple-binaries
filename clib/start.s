@@ -1,7 +1,7 @@
 .section .init.aif
 
 .global _start
-.global _exit
+.global _Exit
 
 
 .balign 4
@@ -70,7 +70,7 @@ _start:
 
         BL      __main
 
-_exit:
+_Exit:
         MOV     x2, x0
         ADR     x0, return_error
         LDR     x1, abex

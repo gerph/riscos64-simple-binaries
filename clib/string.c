@@ -52,20 +52,6 @@ int memcmp(const void *oa, const void *ob, size_t n)
 }
 
 
-
-char *strcpy(char *dst, const char *src)
-{
-    char *odst = dst;
-    while (1)
-    {
-        int c = *src++;
-        *dst++ = c;
-        if (!c)
-            break;
-    }
-    return odst;
-}
-
 char *strncpy(char *dst, const char *src, size_t n)
 {
     char *odst = dst;
@@ -77,15 +63,6 @@ char *strncpy(char *dst, const char *src, size_t n)
             break;
     }
     return odst;
-}
-
-
-size_t strlen(const char *s)
-{
-    const char *os = s;
-    while (*s++ != '\0')
-        ;
-    return s - os - 1;
 }
 
 

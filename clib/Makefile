@@ -44,7 +44,8 @@ CFLAGS += -O1
 CFLAGS += -DHEAP_SIZE=1024
 
 # Options for this build
-CFLAGS += 
+CFLAGS += #-ffunction-sections
+
 
 targetted: export_headers
 	make ${DEFAULT_GOAL}
@@ -105,6 +106,7 @@ else
 OBJS = 	\
 		assert.o \
 		ctypes.o \
+		heap_init.o \
 		io-constants.o \
 		io-file.o \
 		io-fprintf.o \
@@ -112,17 +114,22 @@ OBJS = 	\
 		io-sprintf.o \
 		io-vprintf.o \
 		io.o \
+		kernel-cli.o \
 		kernel.o \
 		main.o \
 		malloc.o \
 		mem.o \
 		qsort.o \
 		strdup.o \
+		string-strcpy.o \
+		string-strlen.o \
 		string.o \
 		strtod.o \
 		strtol.o \
 		time.o \
 		\
+		swis-extras.o \
+		swis-kernel.o \
 		swis.o \
 		start.o
 
@@ -130,7 +137,7 @@ OBJS = 	\
 libcrt.a: ${OBJS}
 	aarch64-unknown-linux-gnu-ar -rc $@ ${OBJS}
 
-start.o: start.s
+%.o: %.s
 	aarch64-unknown-linux-gnu-gcc ${CFLAGS} -c -o $@ $?
 
 %.o: %.c

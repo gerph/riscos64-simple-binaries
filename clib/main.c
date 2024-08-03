@@ -1,30 +1,81 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+
+#include "heap_init.h"
 
 /* Define this to put the arguments on the stack, rather then in the heap */
 #define BUILD_ARGV_ON_STACK
 
+/* Define this to make the atexit() handlers go on the heap, rather than zero-init */
+//#define ATEXIT_HANDLERS_ON_HEAP
+
+/* The minimum heap we want to have */
+#define MINIMUM_HEAP (4*1024)
+
+/* The minimum heap we want to have */
+#define DEFAULT_STACK (64*1024)
+
+/* How many atexit() handlers we support */
+//#define ATEXIT_MAX (32) /* Standard defined value */
+#define ATEXIT_MAX (8)
+
+
+
 extern int main(int argc, const char *argv[]);
+
+void *__aif_base;
+void *__aif_end;
+void *__memory_end;
+uint32_t __attribute__((weak)) __aif_stacksize;
+uint32_t __attribute__((weak)) __heap_min;
+
+static void __main_fail(const char *msg)
+{
+    os_write0(msg);
+    os_newline();
+    exit(1);
+}
 
 int __main(const char *cli,
            const void *appspace,
-           const void *append,
-           const void *memend)
+           void *append,
+           void *memend)
 {
     int rc;
 
-    /* FIXME: Malloc heap should start at append */
+    /**** Check out memory is sufficient and that we can allocate heap ****/
+    /* WARNING: The stack limit is not currently enforced here */
 
-    /* Build argv */
+    if (memend < append)
+    {
+        __main_fail("Not enough memory for application");
+    }
+
+    /* Malloc heap starts at append, and runs to the end of memory, less stack */
+    uint64_t stack_size = __aif_stacksize ? __aif_stacksize : DEFAULT_STACK;
+    uint64_t stack_limit = ((uint64_t)memend) - stack_size;
+    if (stack_limit < (uint64_t)append)
+    {
+        __main_fail("Not enough memory for stack");
+    }
+    uint64_t heap_min = __heap_min ? __heap_min : MINIMUM_HEAP;
+    if (stack_limit < (uint64_t)append + heap_min)
+    {
+        __main_fail("Not enough memory for heap");
+    }
+    __heap_init(append, (void*)stack_limit);
+
+
+    /**** Build argv ****/
+
 #ifdef BUILD_ARGV_ON_STACK
     char arg[strlen(cli) + 1];
 #else
     char *arg = malloc(strlen(cli) + 1);
     if (!arg)
     {
-        os_write0("Not enough memory");
-        os_newline();
-        exit(1);
+        __main_fail("Not enough memory for CLI");
     }
 #endif
     strcpy(arg, cli);
@@ -85,6 +136,7 @@ int __main(const char *cli,
 
     argv[argc] = NULL;
 
+    /*** Call main ***/
     rc = main(argc, (const char **)argv);
 
     exit(rc);
@@ -95,13 +147,25 @@ int __main(const char *cli,
 
 typedef void (*atexit_func_t)(void);
 
-#define ATEXIT_MAX (32)
 
+#ifdef ATEXIT_HANDLERS_ON_HEAP
+static atexit_func_t *atexit_funcs;
+#else
 static atexit_func_t atexit_funcs[ATEXIT_MAX];
+#endif
 
 int atexit(atexit_func_t func)
 {
     int i;
+#ifdef ATEXIT_HANDLERS_ON_HEAP
+    if (atexit_funcs == NULL)
+    {
+        atexit_funcs = calloc(sizeof(atexit_funcs), ATEXIT_MAX);
+        if (atexit_funcs == NULL)
+            return -1; /* Couldn't allocate */
+    }
+#endif
+
     for (i=0; i<ATEXIT_MAX; i++)
     {
         if (atexit_funcs[i] == NULL)
@@ -115,10 +179,15 @@ int atexit(atexit_func_t func)
     return -1;
 }
 
-void exit(int rc)
+void __attribute__((noreturn)) exit(int rc)
 {
     atexit_func_t *funcsp = atexit_funcs;
     int i;
+
+#ifdef ATEXIT_HANDLERS_ON_HEAP
+    if (!funcsp)
+        return;
+#endif
 
     /* Call the registered functions in reverse order */
     for (i=ATEXIT_MAX - 1; i>=0; i--)
@@ -131,6 +200,6 @@ void exit(int rc)
         }
     }
 
-    _exit(rc);
+    _Exit(rc);
 }
 
