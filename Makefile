@@ -47,7 +47,10 @@ CFLAGS += -O1
 CFLAGS += -DHEAP_SIZE=1024
 
 # Options for this build
-CFLAGS += 
+CFLAGS +=
+
+# Flags for the linker
+LDFLAGS = -T link.lnk
 
 targetted:
 	make ${TARGET},ff8 TARGET=${TARGET}
@@ -93,10 +96,10 @@ OBJS =	${TARGET}.o
 	aarch64-unknown-linux-gnu-gcc ${CFLAGS} -c -o $@ $?
 
 ${TARGET}.bin: link.lnk ${OBJS}
-	aarch64-unknown-linux-gnu-ld ${OBJS} ${CRT_OBJS} -T link.lnk -o $@
+	aarch64-unknown-linux-gnu-ld ${OBJS} ${CRT_OBJS} ${LDFLAGS} -o $@
 
 ${TARGET}.map: link.lnk ${OBJS}
-	aarch64-unknown-linux-gnu-ld ${OBJS} ${CRT_OBJS} -T link.lnk -Map $@ -o /dev/null
+	aarch64-unknown-linux-gnu-ld ${OBJS} ${CRT_OBJS} ${LDFLAGS} -Map $@ -o /dev/null
 
 ifeq (${USE_FUNC_SIGNATURE},1)
 ${TARGET},ff8: ${TARGET}.bin ${TARGET}.map

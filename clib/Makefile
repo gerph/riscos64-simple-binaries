@@ -44,7 +44,7 @@ CFLAGS += -O1
 CFLAGS += -DHEAP_SIZE=1024
 
 # Options for this build
-CFLAGS += #-ffunction-sections
+CFLAGS += 
 
 
 targetted: export_headers
