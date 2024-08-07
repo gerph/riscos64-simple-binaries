@@ -4,6 +4,7 @@
 #include "cogdata.inc"
 
 #include "swis.h"
+#include "clib/swis-os.h"
 
 #define MAX_ROTATION (sizeof(cog_matrixes) / sizeof(cog_matrixes[0]))
 

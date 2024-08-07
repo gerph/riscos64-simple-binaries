@@ -18,6 +18,23 @@ int strcmp(const char *a, const char *b)
 }
 
 
+char *strcat(char *a, const char *b)
+{
+    char *oa = a;
+    /* Find the end of the string */
+    while (*a++)
+        ;
+    while (1)
+    {
+        char c = *b++;
+        *a++ = c;
+        if (c=='\0')
+            break;
+    }
+    return oa;
+}
+
+
 int strncmp(const char *a, const char *b, size_t n)
 {
     while (n-->0)
@@ -75,6 +92,19 @@ char *strchr(const char *s, int want)
         s++;
     }
     return (char *)s;
+}
+
+
+char *strrchr(const char *s, int want)
+{
+    char *lastchar = NULL;
+    while (*s)
+    {
+        if (*s == want)
+            lastchar = (char*)s;
+        s++;
+    }
+    return lastchar;
 }
 
 

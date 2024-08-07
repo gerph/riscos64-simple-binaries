@@ -1,5 +1,5 @@
 /*******************************************************************
- * File:        heap-init
+ * File:        heap_init
  * Purpose:     Heap setup
  * Author:      Gerph
  * Date:        25 Jul 2024

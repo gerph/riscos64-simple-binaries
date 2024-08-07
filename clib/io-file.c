@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "swis.h"
+#include "swis-os.h"
 
 
 FILE *fopen(const char *filename, const char *mode)
@@ -160,6 +161,12 @@ int fgetc(FILE *fh)
         return -1;
 
     return c;
+}
+
+int fflush(FILE *fh)
+{
+    /* FIXME: Could call the flush OS_Args call */
+    return 0;
 }
 
 

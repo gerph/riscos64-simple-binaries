@@ -1,6 +1,6 @@
 /*******************************************************************
- * File:        heap_init
- * Purpose:     Heap initialisation
+ * File:        malloc
+ * Purpose:     Memory allocation on the heap
  * Author:      Gerph
  * Date:        03 Aug 2024
  ******************************************************************/
@@ -11,6 +11,7 @@
 #include <string.h>
 
 #include "swis.h"
+#include "swis-os.h"
 
 #include "heap_init.h"
 

@@ -1,4 +1,5 @@
 #include "swis.h"
+#include "clib/swis-os.h"
 
 int myprint(char *str)
 {
