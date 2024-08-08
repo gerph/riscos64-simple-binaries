@@ -40,9 +40,6 @@ endif
 # Optimisation options
 CFLAGS += -O1
 
-# How much static heap we'll allocate
-CFLAGS += -DHEAP_SIZE=1024
-
 # Options for this build
 CFLAGS += 
 
