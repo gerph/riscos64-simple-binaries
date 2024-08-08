@@ -106,6 +106,7 @@ else
 OBJS = 	\
 		assert.o \
 		ctypes.o \
+		errno.o \
 		heap_init.o \
 		io-constants.o \
 		io-file.o \
@@ -116,6 +117,7 @@ OBJS = 	\
 		io.o \
 		kernel-cli.o \
 		kernel.o \
+		longjmp.o \
 		main.o \
 		malloc.o \
 		mem.o \
