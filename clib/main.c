@@ -99,7 +99,6 @@ int __main(const char *cli,
         {
             if (*p == ' ')
             {
-                *p = '\0';
                 in_spaces = 1;
             }
         }
@@ -180,27 +179,37 @@ int atexit(atexit_func_t func)
     return -1;
 }
 
-void __attribute__((noreturn)) exit(int rc)
+
+void _clib_finalise(void)
 {
     atexit_func_t *funcsp = atexit_funcs;
     int i;
 
 #ifdef ATEXIT_HANDLERS_ON_HEAP
-    if (!funcsp)
-        return;
+    if (funcsp)
 #endif
-
-    /* Call the registered functions in reverse order */
-    for (i=ATEXIT_MAX - 1; i>=0; i--)
     {
-        if (atexit_funcs[i] != NULL)
+        /* Call the registered functions in reverse order */
+        for (i=ATEXIT_MAX - 1; i>=0; i--)
         {
-            atexit_func_t func = atexit_funcs[i];
-            atexit_funcs[i] = NULL;
-            func();
+            if (atexit_funcs[i] != NULL)
+            {
+                atexit_func_t func = atexit_funcs[i];
+                atexit_funcs[i] = NULL;
+                func();
+            }
         }
     }
 
-    _Exit(rc);
+    /* Shut down our modules */
+    __getenv_final();
+    // __io_final();
+    // __heap_final();
 }
 
+void __attribute__((noreturn)) exit(int rc)
+{
+    _clib_finalise();
+
+    _Exit(rc);
+}

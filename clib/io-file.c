@@ -193,6 +193,11 @@ int fputc(int c, FILE *fh)
     return c;
 }
 
+int putc(int c, FILE *fh)
+{
+    return fputc(c, fh);
+}
+
 char *fgets(char *str, int size, FILE *fh)
 {
     char *p;

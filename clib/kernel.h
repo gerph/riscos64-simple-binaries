@@ -18,5 +18,8 @@ int _kernel_oscli(const char *cli);
 _kernel_oserror *_kernel_last_oserror(void);
 
 
+_kernel_oserror *_kernel_setenv(const char *var, const char *val);
+_kernel_oserror *_kernel_getenv(const char *var, char *buf, unsigned size);
+
 #endif
 

@@ -62,7 +62,7 @@ riscos_headers/Lib/CLib/%.h: %.h | local_headers
 local_headers: riscos_headers/_marker
 riscos_headers/_marker:
 	mkdir -p riscos_headers/C/riscos
-	mkdir -p riscos_headers/Lib
+	mkdir -p riscos_headers/Lib/CLib
 ifeq (${CEXPORT_DIR},)
 	echo No local headers defined in CEXPORT_DIR
 else
@@ -106,6 +106,7 @@ OBJS = 	\
 		errno.o \
 		heap_init.o \
 		io-constants.o \
+		io-console.o \
 		io-file.o \
 		io-fprintf.o \
 		io-printf.o \
@@ -126,11 +127,27 @@ OBJS = 	\
 		strtod.o \
 		strtol.o \
 		time.o \
+		sysvars.o \
+		sysvars-kernel.o \
+		sysvars-init.o \
+		version.o \
+		\
+		e_rem_pio2.o \
+		k_rem_pio2.o \
+		k_cos.o \
+		s_cos.o \
+		k_sin.o \
+		s_sin.o \
+		s_floor.o \
+		s_scalbn.o \
 		\
 		swis-extras.o \
 		swis-kernel.o \
 		swis.o \
 		start.o
+
+#		fabs.o \
+#		trunc.o \
 
 
 libcrt.a: ${OBJS}

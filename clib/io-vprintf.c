@@ -122,6 +122,8 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
             case 's':
                 {
                     const char *s = va_arg(args, const char *);
+                    if (s==NULL)
+                        s = "<NULL>";
                     if (params.precision != 0)
                     {
                         /* Maximum of precision characters */

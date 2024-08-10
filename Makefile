@@ -14,12 +14,14 @@ TARGET ?= hello_world
 
 USE_FUNC_SIGNATURE ?= 1
 
-DIS = ~/projects/RO/pyromaniac/utils/riscos-dumpi --arm64
 CROSS_ROOT = ${shell echo $$CROSS_ROOT}
 
 ALL_TARGETS = hello_world \
 				cog \
+				crash \
+				hello_world_printf
 
+CLIBDIR = clib
 
 
 # Remove the flags that might make code think it's compiling for linux system.
@@ -33,7 +35,7 @@ CFLAGS += -nostdlib -ffreestanding -march=armv8-a
 #CFLAGS += -nostdlib -ffreestanding -march=armv8-a+nofp
 
 # Add the exports directory to those things we'll build with
-CFLAGS += -Iclib/riscos_headers/C -Iclib/riscos_headers/Lib/ -Iclib/riscos_headers/Lib/CLib/
+CFLAGS += -I${CLIBDIR}/riscos_headers/C -I${CLIBDIR}/riscos_headers/Lib/ -I${CLIBDIR}/riscos_headers/Lib/CLib/
 
 # Options to allow function signatures to appear RISC OS-like
 ifeq (${USE_FUNC_SIGNATURE},1)
@@ -43,11 +45,11 @@ endif
 # Optimisation options
 CFLAGS += -O1
 
-# How much static heap we'll allocate
-CFLAGS += -DHEAP_SIZE=1024
-
 # Options for this build
 CFLAGS +=
+
+# Assembler flags
+AFLAGS = -march=armv8-a
 
 # Flags for the linker
 LDFLAGS = -T link.lnk
@@ -82,32 +84,40 @@ ${DEFAULT_GOAL}: dockcross-linux-arm64 clib/libcrt.a
 	./dockcross-linux-arm64 make TARGET=${TARGET}
 endif
 
-clib/libcrt.a:
-	cd clib; make
+${CLIBDIR}/libcrt.a:
+	cd ${CLIBDIR}; make
 
 else
 
 
-CRT_OBJS = 	clib/libcrt.a
+CRT_OBJS = 	${CLIBDIR}/libcrt.a
+
+CC = aarch64-unknown-linux-gnu-gcc
+AS = aarch64-unknown-linux-gnu-as
+LD = aarch64-unknown-linux-gnu-ld
+OBJCOPY = aarch64-unknown-linux-gnu-objcopy
 
 OBJS =	${TARGET}.o
 
 %.o: %.c
-	aarch64-unknown-linux-gnu-gcc ${CFLAGS} -c -o $@ $?
+	${CC} ${CFLAGS} -c -o $@ $?
 
-${TARGET}.bin: link.lnk ${OBJS}
-	aarch64-unknown-linux-gnu-ld ${OBJS} ${CRT_OBJS} ${LDFLAGS} -o $@
+%.o: %.s
+	${AS} ${AFLAGS} -o $@ $?
 
-${TARGET}.map: link.lnk ${OBJS}
-	aarch64-unknown-linux-gnu-ld ${OBJS} ${CRT_OBJS} ${LDFLAGS} -Map $@ -o /dev/null
+${TARGET}.bin: link.lnk ${OBJS} ${CRT_OBJS}
+	${LD} ${OBJS} ${CRT_OBJS} ${LDFLAGS} -o $@
+
+${TARGET}.map: link.lnk ${OBJS} ${CRT_OBJS}
+	${LD} ${OBJS} ${CRT_OBJS} ${LDFLAGS} -Map $@ -o /dev/null
 
 ifeq (${USE_FUNC_SIGNATURE},1)
 ${TARGET},ff8: ${TARGET}.bin ${TARGET}.map
-	aarch64-unknown-linux-gnu-objcopy -O binary -j .text ${TARGET}.bin $@
+	${OBJCOPY} -O binary -j .text ${TARGET}.bin $@
 	python riscos_symbols.py ${TARGET}.map ${TARGET},ff8
 else
 ${TARGET},ff8: ${TARGET}.bin
-	aarch64-unknown-linux-gnu-objcopy -O binary -j .text ${TARGET}.bin $@
+	${OBJCOPY} -O binary -j .text ${TARGET}.bin $@
 endif
 
 endif
