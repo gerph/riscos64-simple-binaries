@@ -5,7 +5,8 @@
  * Date:        10 Aug 2024
  ******************************************************************/
 
-#include <kernel.h>
+#include <stdlib.h>
+#include "kernel.h"
 
 _kernel_oserror *_clib_initialisemodule(void *pwp)
 {

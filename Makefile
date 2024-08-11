@@ -52,7 +52,7 @@ CFLAGS +=
 AFLAGS = -march=armv8-a
 
 # Flags for the linker
-LDFLAGS = -T link.lnk
+LDFLAGS = -T link.lnk -e _aif64_entry
 
 targetted:
 	make ${TARGET},ff8 TARGET=${TARGET}

@@ -4,6 +4,17 @@
 #include "swis-os.h"
 
 
+#define _IO_MAGIC (0x381F0000)
+#define _IO_MAGIC_MASK (0xFFFF0000)
+#define CHECK_MAGIC(fh, fail_code) \
+                        do { \
+                            if ( ((fh)->_flags & _IO_MAGIC_MASK) != _IO_MAGIC ) \
+                                return (fail_code); \
+                        } while (0)
+
+extern FILE *__file_list;
+
+
 FILE *fopen(const char *filename, const char *mode)
 {
     int reason = 0x00;
@@ -37,6 +48,11 @@ FILE *fopen(const char *filename, const char *mode)
     }
 
     fh->_fileno = _fileno;
+
+    /* Link to chain */
+    fh->_chain = __file_list;
+    __file_list = fh;
+
     return fh;
 }
 
@@ -45,9 +61,26 @@ int fclose(FILE *fh)
 {
     if (fh)
     {
+        CHECK_MAGIC(fh, -1);
         if (fh->_fileno)
             _swix(OS_Find, _INR(0, 1), 0, fh->_fileno);
         fh->_fileno = 0;
+        fh->_flags = -1; /* Clear the magic code */
+
+        /* Unlink from chain */
+        FILE **lastp = &__file_list;
+        FILE *cur;
+        for (cur=__file_list; cur; cur=cur->_chain)
+        {
+            if (cur == fh)
+            {
+                /* This is the entry to unlink */
+                *lastp = cur->_chain;
+                free(fh);
+                break;
+            }
+            lastp = &cur->_chain;
+        }
         return 0;
     }
     return -1;
@@ -61,6 +94,7 @@ int fseek(FILE *fh, long int pos, int whence)
     if (!fh)
         return -1;
 
+    CHECK_MAGIC(fh, -1);
     switch (whence)
     {
         case SEEK_SET:
@@ -92,6 +126,8 @@ long int ftell(FILE *fh)
     if (!fh)
         return -1;
 
+    CHECK_MAGIC(fh, -1);
+
     size_t cur = 0;
     err = _swix(OS_Args, _INR(0, 1)|_OUT(2), 0, fh->_fileno, &cur);
     if (err)
@@ -108,6 +144,8 @@ int feof(FILE *fh)
     if (!fh)
         return -1;
 
+    CHECK_MAGIC(fh, -1);
+
     err = _swix(OS_Args, _INR(0, 1)|_OUT(2), 5, fh->_fileno, &at_eof);
     if (err)
         return 1; /* Error, so return EOF */
@@ -120,6 +158,8 @@ size_t fread(void *ptr, size_t size, size_t nitems, FILE *fh)
     _kernel_oserror *err;
     if (!fh)
         return -1;
+
+    CHECK_MAGIC(fh, -1);
 
     size_t transfer = size * nitems;
     size_t not_transferred = 0;
@@ -137,6 +177,8 @@ size_t fwrite(const void *ptr, size_t size, size_t nitems, FILE *fh)
     if (!fh)
         return -1;
 
+    CHECK_MAGIC(fh, -1);
+
     size_t transfer = size * nitems;
     size_t not_transferred = 0;
     err = _swix(OS_GBPB, _INR(0, 3)|_OUT(3), 2, fh->_fileno, ptr, transfer, &not_transferred);
@@ -152,8 +194,10 @@ int fgetc(FILE *fh)
     _kernel_oserror *err;
     if (!fh)
         return -1;
-    if (fh == stdin)
+    if (fh == stdout || fh == stderr)
         return os_readc();
+
+    CHECK_MAGIC(fh, -1);
 
     err = _swix(OS_BGet, _IN(0)|_OUT(0), fh->_fileno, &c);
     /* FIXME: Doesn't check for EOF */
@@ -165,6 +209,8 @@ int fgetc(FILE *fh)
 
 int fflush(FILE *fh)
 {
+    CHECK_MAGIC(fh, -1);
+
     /* FIXME: Could call the flush OS_Args call */
     return 0;
 }
@@ -186,6 +232,8 @@ int fputc(int c, FILE *fh)
         return c;
     }
 
+    CHECK_MAGIC(fh, -1);
+
     err = _swix(OS_BPut, _INR(0, 1), fh->_fileno, c);
     if (err)
         return -1;
@@ -203,6 +251,8 @@ char *fgets(char *str, int size, FILE *fh)
     char *p;
     if (!fh)
         return NULL;
+
+    CHECK_MAGIC(fh, -1);
 
     for (p = str; p - str > 1; p++)
     {

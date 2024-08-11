@@ -34,7 +34,7 @@ CFLAGS += -Iriscos_headers/C/ -Iriscos_headers/Lib/
 
 # Options to allow function signatures to appear RISC OS-like
 ifeq (${USE_FUNC_SIGNATURE},1)
-CFLAGS += -fpatchable-function-entry=20,20
+CFLAGS += -fpatchable-function-entry=5,5
 endif
 
 # Optimisation options
@@ -107,6 +107,7 @@ OBJS = 	\
 		heap_init.o \
 		io-constants.o \
 		io-console.o \
+		io-file-init.o \
 		io-file.o \
 		io-fprintf.o \
 		io-printf.o \
@@ -117,6 +118,8 @@ OBJS = 	\
 		kernel.o \
 		longjmp.o \
 		main.o \
+		main-exit.o \
+		module.o \
 		malloc.o \
 		mem.o \
 		qsort.o \
@@ -144,7 +147,8 @@ OBJS = 	\
 		swis-extras.o \
 		swis-kernel.o \
 		swis.o \
-		start.o
+		start.o \
+		start-exit.o
 
 #		fabs.o \
 #		trunc.o \

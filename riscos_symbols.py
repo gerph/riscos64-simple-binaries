@@ -76,24 +76,30 @@ for addr, symbol in sorted(functions.items()):
     space_needed = 4 + symbol_len
     symbol_start = addr - base_address - space_needed
     currently = bin_data[symbol_start:symbol_start + space_needed]
-    if currently == nop_bytes * int(space_needed / 4):
-        if debug:
-            print("Symbol '%s' can be patched at address &%08x" % (symbol, addr))
-        pre = bin_data[:symbol_start]
-        post = bin_data[symbol_start + space_needed:]
-        try:
-            patch = bytearray(symbol) + b'\0'
-        except TypeError:
-            patch = bytearray(symbol, 'ascii') + b'\0'
-        while len(patch) & 3:
-            patch += b'\0'
-        patch += bytearray([symbol_len, 0,0,255])
-        bin_data = pre + patch + post
+    if currently[-4:] != nop_bytes:
+        # This function isn't preceded by any NOPs, so it's not possible to signature it.
+        # We'll assume it's an assembler function or similar and just ignore.
+        pass
     else:
-        if debug:
-            print("Failed to patch symbol '%s'" % (symbol,))
-            #print("  Currently: %r" % (currently,))
-            #print("  Need:      %r" % (nop_bytes * (space_needed / 4),))
+        if currently == nop_bytes * int(space_needed / 4):
+            if debug:
+                print("Symbol '%s' can be patched at address &%08x" % (symbol, addr))
+            pre = bin_data[:symbol_start]
+            post = bin_data[symbol_start + space_needed:]
+            try:
+                patch = bytearray(symbol) + b'\0'
+            except TypeError:
+                patch = bytearray(symbol, 'ascii') + b'\0'
+            while len(patch) & 3:
+                patch += b'\0'
+            patch += bytearray([symbol_len, 0,0,255])
+            bin_data = pre + patch + post
+        else:
+            print("Warning: Failed to patch symbol name in '%s'" % (symbol,))
+            if debug:
+                print("  Currently: %r" % (currently,))
+                print("  Need:      %r" % (nop_bytes * (space_needed / 4),))
+
 
 with open(bin_file, "wb") as fh:
     fh.write(bin_data)
