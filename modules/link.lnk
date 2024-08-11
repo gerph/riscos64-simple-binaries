@@ -1,0 +1,61 @@
+MEMORY
+{
+    rmf (rwx) : ORIGIN = 0x0, LENGTH = 0x10000000
+}
+
+SECTIONS
+{
+    RMF_BASE = 0x0;
+
+    .text RMF_BASE :
+    {
+        _code_start = ABSOLUTE(.);
+
+        *(.init.rmf)
+        *(.text)
+        . = ALIGN(16);
+        _code_end = ABSOLUTE(.);
+        _code_size = _code_end - _code_start;
+
+        _rodata_start = ABSOLUTE(.);
+        *(.rodata)
+        *(.rodata.*)
+        *(.got)
+        *(.got.plt)
+        . = ALIGN(16);
+        _rodata_end = ABSOLUTE(.);
+        _rodata_size = _rodata_end - _rodata_start;
+
+        _rodata_plus_code_size = _rodata_size + _code_size;
+
+        _data_start = ABSOLUTE(.);
+        *(.data)
+        . = ALIGN(16);
+        _data_end = ABSOLUTE(.);
+        _data_size = _data_end - _data_start;
+
+        /* The zero initialised region */
+        . = ALIGN(16);
+
+    } > rmf
+
+    .text (NOLOAD) : {
+        _zinit_start = ABSOLUTE(.);
+        *(.bss .bss.*)
+        _zinit_end = ABSOLUTE(.);
+        _zinit_size = _zinit_end - _zinit_start;
+    } > rmf
+
+    /* Place the eh_frame and others out of the way - we don't use them yet */
+    .eh_frame (NOLOAD) : { *(.eh_frame) }
+    .igot (NOLOAD) : { *(.igot.*) }
+    .iplt (NOLOAD) : { *(.iplt) }
+
+    .interp (NOLOAD) : { *(.interp) }
+    .dynsym (NOLOAD) : { *(.dynsym) }
+    .dynstr (NOLOAD) : { *(.dynstr) }
+    .hash (NOLOAD) : { *(.hash) }
+    .gnu.hash (NOLOAD) : { *(.gnu.hash) }
+
+    __patchable_function_entries : { *(__patchable_function_entries) }
+}
