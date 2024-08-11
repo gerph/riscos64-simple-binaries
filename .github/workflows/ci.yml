@@ -47,11 +47,12 @@ jobs:
 
       - name: Build the binaries
         run: |
+          cd absolutes
           make all
 
       - name: Build an archive
         run: |
-          zip -9r RISCOSBinaries.zip *,ff8
+          zip -9r RISCOSBinaries.zip absolutes/*,ff8
 
       - name: Give the output a versioned name
         id: version
@@ -83,7 +84,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download built RISC OS binary
+      - name: Download built RISC OS 64 binaries
         uses: actions/download-artifact@v4
         with:
           name: RISCOS-build

@@ -21,8 +21,6 @@ ALL_TARGETS = hello_world \
 				crash \
 				hello_world_printf
 
-CLIBDIR = clib
-
 
 # Remove the flags that might make code think it's compiling for linux system.
 CFLAGS = -U__linux -U__linux__ -U__unix__ -U__unix -Ulinux -Uunix -U__gnu_linux__
@@ -46,7 +44,7 @@ endif
 CFLAGS += -O1
 
 # Options for this build
-CFLAGS +=
+CFLAGS += -I/ro64
 
 # Assembler flags
 AFLAGS = -march=armv8-a
@@ -69,26 +67,30 @@ dockcross-linux-arm64:
 
 clean:
 	-rm -f *.o *.a *.bin *,ff8 *.map
-	cd clib && make clean
+	cd ${CLIBDIR} && make clean
 
 ifeq (${CROSS_ROOT},)
 # If we're outside the docker container, re-run ourselves inside the container
+
+CLIBDIR = $(shell realpath ../clib)
+
 ifneq ($(filter-out all shell dockcross-linux-arm64 clean,${MAKECMDGOALS}),)
 # The command wasn't one of our invocation commands above
 .PHONY: ${MAKECMDGOALS}
-${MAKECMDGOALS}: dockcross-linux-arm64 clib/libcrt.a
-	./dockcross-linux-arm64 make ${MAKECMDGOALS} TARGET=${TARGET}
+${MAKECMDGOALS}: dockcross-linux-arm64 ${CLIBDIR}/libcrt.a
+	./dockcross-linux-arm64 --args "-v ${CLIBDIR}:/ro64/clib" -- make ${MAKECMDGOALS} TARGET=${TARGET}
 else
 .PHONY: ${DEFAULT_GOAL}
-${DEFAULT_GOAL}: dockcross-linux-arm64 clib/libcrt.a
-	./dockcross-linux-arm64 make TARGET=${TARGET}
+${DEFAULT_GOAL}: dockcross-linux-arm64 ${CLIBDIR}/libcrt.a
+	./dockcross-linux-arm64 --args "-v ${CLIBDIR}:/ro64/clib" -- make TARGET=${TARGET}
 endif
 
 ${CLIBDIR}/libcrt.a:
 	cd ${CLIBDIR}; make
 
 else
-
+# We are within the docker container
+CLIBDIR = /ro64/clib
 
 CRT_OBJS = 	${CLIBDIR}/libcrt.a
 

@@ -41,6 +41,6 @@ The 64bit AIF format has been defined as follows:
 | &04c   | string    | ARM32: `= "AArch64 binaries cannot be run on 32bit RISC OS", 0` |  |
 | &07c   | &0        | ARM32: `DCD     0` |  |
 | ... |
-| &100   | ARM64: `NOP` | AArch64 decompression |
-| &104   | ARM64: `NOP` | AArch64 zero init |
-| &108   | ARM64: `BL entry` | AArch64 entry point |
+| &100   | &D503201F | ARM64: `NOP` | AArch64 decompression |
+| &104   | &94000004 | ARM64: `BL zeroinit` | AArch64 zero init |
+| &108   | &9400001F | ARM64: `BL entry` | AArch64 entry point |
