@@ -252,7 +252,7 @@ char *fgets(char *str, int size, FILE *fh)
     if (!fh)
         return NULL;
 
-    CHECK_MAGIC(fh, -1);
+    CHECK_MAGIC(fh, NULL);
 
     for (p = str; p - str > 1; p++)
     {

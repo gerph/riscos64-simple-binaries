@@ -113,7 +113,6 @@ OBJS = 	\
 		io-printf.o \
 		io-sprintf.o \
 		io-vprintf.o \
-		io.o \
 		kernel-cli.o \
 		kernel.o \
 		longjmp.o \

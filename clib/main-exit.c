@@ -2,8 +2,10 @@
 #include <string.h>
 #include <stdint.h>
 
+#include "main-exit.h"
 #include "heap_init.h"
 #include "io-file-init.h"
+#include "sysvars-init.h"
 #include "swis-os.h"
 
 /* Define this to make the atexit() handlers go on the heap, rather than zero-init */

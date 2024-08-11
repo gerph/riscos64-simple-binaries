@@ -7,6 +7,8 @@
 
 #include <stdlib.h>
 #include "kernel.h"
+#include "main-exit.h"
+
 
 _kernel_oserror *_clib_initialisemodule(void *pwp)
 {
