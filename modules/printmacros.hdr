@@ -1,0 +1,38 @@
+
+.macro  SWI     swi
+        MOV     x10, #\swi
+        SVC     #0
+.endm
+
+.altmacro
+.macro  PrintLine  msg
+        STP     x0, x10, [sp, #-16]!
+        ADR     x0, printline_msg\@
+        SWI     OS_Write0
+        SWI     OS_NewLine
+        LDP     x0, x10, [sp], #16
+        B       printline_done\@
+printline_msg\@:
+.asciz \msg
+.balign 4
+printline_done\@:
+.endm
+
+.macro  PrintMessage msg
+        STP     x0, x10, [sp, #-16]!
+        ADR     x0, printmessage_msg\@
+        SWI     OS_Write0
+        LDP     x0, x10, [sp], #16
+        B       printmessage_done\@
+printmessage_msg\@:
+.asciz \msg
+.balign 4
+printmessage_done\@:
+.endm
+
+.macro  PrintString reg
+        STP     x0, x10, [sp, #-16]!
+        MOV     x0, \reg
+        SWI     OS_Write0
+        LDP     x0, x10, [sp], #16
+.endm

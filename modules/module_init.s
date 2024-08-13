@@ -1,42 +1,6 @@
 
-.text
-
-.altmacro
-.macro  PrintLine  msg
-        STP     x0, x10, [sp, #-16]!
-        ADR     x0, printline_msg\@
-        MOV     x10, #2 // OS_Write0
-        SVC     #0
-        MOV     x10, #3 // OS_NewLine
-        SVC     #0
-        LDP     x0, x10, [sp], #16
-        B       printline_done\@
-printline_msg\@:
-.asciz \msg
-.balign 4
-printline_done\@:
-.endm
-
-.macro  PrintMessage msg
-        STP     x0, x10, [sp, #-16]!
-        ADR     x0, printmessage_msg\@
-        MOV     x10, #2 // OS_Write0
-        SVC     #0
-        LDP     x0, x10, [sp], #16
-        B       printmessage_done\@
-printmessage_msg\@:
-.asciz \msg
-.balign 4
-printmessage_done\@:
-.endm
-
-.macro  PrintString reg
-        STP     x0, x10, [sp, #-16]!
-        MOV     x0, \reg
-        MOV     x10, #2 // OS_Write0
-        SVC     #0
-        LDP     x0, x10, [sp], #16
-.endm
+.include "swis.hdr"
+.include "printmacros.hdr"
 
 .section .init.rmf, "a"
 
