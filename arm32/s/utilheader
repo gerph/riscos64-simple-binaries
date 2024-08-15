@@ -1,0 +1,25 @@
+        AREA |Asm$$code|, CODE, READONLY
+
+OS_GenerateError * 0x2b
+OS_Exit          * 0x11
+
+        ENTRY
+_start
+        B       arm32_entry
+        DCD     &79766748               ; magic 1
+        DCD     &216C6776               ; magic 2
+        DCD     0                       ; Read only size
+        DCD     0                       ; Read/write size
+        DCD     64                      ; built for 64bit
+        DCD     0                       ; AArch64 entry point
+arm32_entry
+        ADR     r0, error_block         ; was decompression
+        CMP     r0, #1<<31              ; set V flag
+        MOV     pc, lr
+error_block
+        DCD     0
+        = "AArch64 binaries cannot be run on 32bit RISC OS" ,0
+        ALIGN
+        DCD     0
+
+        END

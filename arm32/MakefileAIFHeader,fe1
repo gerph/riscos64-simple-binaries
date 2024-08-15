@@ -1,11 +1,11 @@
 #!/usr/bin/env riscos-amu -f
-# Makefile for MyCommand
+# Makefile for MyAIF
 #
 
 #
 # Program specific options:
 #
-COMPONENT  = MyCommand
+COMPONENT  = MyAIF
 
 # Specifies additional targets for startup
 #INITTARGET = inittarget
