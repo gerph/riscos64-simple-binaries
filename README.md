@@ -147,7 +147,7 @@ The format has been extended, thus:
 | &004   | &79766748 | -                        | magic 1 |
 | &008   | &216c6776 | -                        | magic 2 |
 | &00c   | variable  | code + static size       | Read-only size |
-| &010   | vairable  | R/W data size            | Read-write size |
+| &010   | variable  | R/W data size            | Read-write size |
 | &014   | &00000040 |                          | Bitness + flags |
 | &018   | variable  |                          | offset of ARM64 entry |
 | &01c   | &e28f0004 | ARM32: `ADR     r0, &24` | ARM32 error report |

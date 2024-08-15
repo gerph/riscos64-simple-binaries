@@ -44,9 +44,14 @@ jobs:
           cd modules
           make all
 
+      - name: Build the utilities
+        run: |
+          cd utilities
+          make all
+
       - name: Build an archive
         run: |
-          zip -9r RISCOSBinaries.zip absolutes/*,ff8 modules/*,ff8
+          zip -9r RISCOSBinaries.zip absolutes/*,ff8 modules/*,ffa utilities/*,ffc
 
       - name: Give the output a versioned name
         id: version
@@ -65,7 +70,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: RISCOS-build
+          name: RISCOS64-build
           path: ${{ steps.version.outputs.leafname }}
         # The artifact that is downloadable from the Actions is actually a zip of the artifacts
         # that we supply. So it will be a regular Zip file containing a RISC OS Zip file.
