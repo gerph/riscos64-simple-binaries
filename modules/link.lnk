@@ -1,11 +1,12 @@
 MEMORY
 {
-    rmf (rwx) : ORIGIN = 0x0, LENGTH = 0x10000000
+    /* We build our modules to start at offset 4 to allow for the module heap header */
+    rmf (rwx) : ORIGIN = 0x4, LENGTH = 0x10000000
 }
 
 SECTIONS
 {
-    RMF_BASE = 0x0;
+    RMF_BASE = 0x4;
 
     .text RMF_BASE :
     {
@@ -39,12 +40,12 @@ SECTIONS
 
     } > rmf
 
-    .text (NOLOAD) : {
-        _zinit_start = ABSOLUTE(.);
+    _zinit_start = ABSOLUTE(.);
+    .bss (NOLOAD) : {
         *(.bss .bss.*)
-        _zinit_end = ABSOLUTE(.);
-        _zinit_size = _zinit_end - _zinit_start;
     } > rmf
+    _zinit_end = ABSOLUTE(.);
+    _zinit_size = SIZEOF(.bss);
 
     /* Place the eh_frame and others out of the way - we don't use them yet */
     .eh_frame (NOLOAD) : { *(.eh_frame) }

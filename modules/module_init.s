@@ -19,7 +19,8 @@
 .word     modflags        // offset to table   Module features
 
 modflags:
-.word     (0<<0) | (1<<4)
+.word	0 + (1<<2) + (1<<4) // 32bit NOT supported + zero-init present + AArch64
+.word   _zinit_size         // Size of our Zero initialised area
 
 title:
 .asciz "ModuleWithInit"
@@ -36,6 +37,7 @@ init:
         PrintMessage "Environment string: "
         PrintString x0
         PrintLine ""
+        MOV     x0, #0      // no error return
         LDP     x29, x30, [sp], #16
         RET
 
@@ -43,5 +45,6 @@ init:
 final:
         STP     x29, x30, [sp, #-16]!
         PrintLine "Module finalising"
+        MOV     x0, #0      // no error return
         LDP     x29, x30, [sp], #16
         RET

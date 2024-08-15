@@ -21,6 +21,7 @@ char *__heap_end;
 void __heap_init(void *append, void *heap_limit)
 {
     __heap_base = (char *)append;
+    __heap_base[0] = '\0'; /* Marker that we haven't been initialised */
     __heap_end = (char *)heap_limit;
     __heap_hwm = __heap_base;
 }

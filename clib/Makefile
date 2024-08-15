@@ -113,6 +113,7 @@ OBJS = 	\
 		io-printf.o \
 		io-sprintf.o \
 		io-vprintf.o \
+		kernel-state.o \
 		kernel-cli.o \
 		kernel.o \
 		longjmp.o \
@@ -145,6 +146,8 @@ OBJS = 	\
 		\
 		swis-extras.o \
 		swis-kernel.o \
+		swis-module.o \
+		swis-heap.o \
 		swis.o \
 		start.o \
 		start-exit.o
