@@ -1,16 +1,5 @@
 ---
-# RISC OS CI build through build.riscos.online
-#
-# To reuse this configuration with your own repository:
-#
-#   - Create a .robuild.yaml to describe what should be built on RISC OS.
-#       - `jobs.build.script` should be a list of commands to run on RISC OS
-#       - `jobs.build.artifacts.path` should be the directory to zip.
-#   - Create a VersionNum file if you wish to use the automated versioning
-#     in the same style as the RISC OS sources. [optional]
-#   - Update the 3rd step ('give the archive a versioned name') to give a
-#     suitable name for the archive.
-#   - Update the 4th step ('upload-artifacts') to include the same names.
+# RISC OS 64 CI build
 #
 # The 'release' job is triggered when a tag starting with a 'v' is created,
 # which will create a GitHub release for the repository with the name of the
@@ -45,13 +34,19 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
 
-      - name: Build the binaries
+      - name: Build the absolutes
         run: |
-          make
+          cd absolutes
+          make all
+
+      - name: Build the modules
+        run: |
+          cd modules
+          make all
 
       - name: Build an archive
         run: |
-          zip -9r RISCOSBinaries.zip *,ff8
+          zip -9r RISCOSBinaries.zip absolutes/*,ff8 modules/*,ff8
 
       - name: Give the output a versioned name
         id: version
@@ -83,10 +78,10 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Download built RISC OS binary
+      - name: Download built RISC OS 64 binaries
         uses: actions/download-artifact@v4
         with:
-          name: RISCOS-build
+          name: RISCOS64-build
 
       - name: Create Release
         id: create_release

@@ -27,7 +27,7 @@ The 64bit AIF format has been defined as follows:
 | &014   | variable  | code + static data size  | read only size |
 | &018   | variable  | R/W data size| read write size |
 | &01C   | &0        | - | debug size |
-| &020   | &0        | - | zero init size |
+| &020   | variable  | - | zero init size |
 | &024   | &0        | - | debug type |
 | &028   | &8000     | - | linked base address |
 | &02C   | &0        | - | workspace size (obsolete) |
@@ -41,4 +41,6 @@ The 64bit AIF format has been defined as follows:
 | &04c   | string    | ARM32: `= "AArch64 binaries cannot be run on 32bit RISC OS", 0` |  |
 | &07c   | &0        | ARM32: `DCD     0` |  |
 | ... |
-| &100   | ARM64: start ... | AArch64 entry point |
+| &100   | &D503201F | ARM64: `NOP` | AArch64 decompression |
+| &104   | &94000004 | ARM64: `BL zeroinit` | AArch64 zero init |
+| &108   | &9400001F | ARM64: `BL entry` | AArch64 entry point |

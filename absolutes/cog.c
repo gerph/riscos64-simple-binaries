@@ -1,10 +1,10 @@
 #include <stdbool.h>
 #include <stdint.h>
-#include "start.h"
 
 #include "cogdata.inc"
 
 #include "swis.h"
+#include "clib/swis-os.h"
 
 #define MAX_ROTATION (sizeof(cog_matrixes) / sizeof(cog_matrixes[0]))
 
@@ -16,7 +16,7 @@
 #define os_set_output_bank(bank) os_byte_out1(112, bank, 0)
 
 
-int start(const char *cli, uint64_t ramlimt, uint8_t *starttime_quin)
+int main(int argc, char *argv[])
 {
     int bank = 1;
     int rotation;

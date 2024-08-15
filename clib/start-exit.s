@@ -1,19 +1,9 @@
 .text
 
-.global _start
-.global exit
+.global _Exit
 
 
-.balign 4
-_start:
-// Set up the stack pointer
-        MOV     x10, #0x10      // OS_GetEnv
-        SVC     #0
-
-        MOV     sp, x1          // Set the stack pointer to our memory limit (maybe this should be implicit now?)
-        BL      start
-
-exit:
+_Exit:
         MOV     x2, x0
         ADR     x0, return_error
         LDR     x1, abex

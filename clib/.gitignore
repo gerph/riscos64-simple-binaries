@@ -1,10 +1,7 @@
 dockcross-linux-arm64
 *,ff8
-*,ffa
 *.o
 *.a
 *.bin
 *.map
-*/o32/*
-*/util32/*
-
+riscos_headers/

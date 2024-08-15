@@ -19,7 +19,7 @@ SECTIONS
         /* 00000014 */ LONG(_code_size + _rodata_size) /* .... : ANDEQ   r0, r0, r0 ; RO region size */
         /* 00000018 */ LONG(_data_size - AIF_BASE) /* .... : ANDEQ   r0, r0, r0 ; RW region size */
         /* 0000001c */ LONG(0x00000000) /* .... : DCD X ; debug size */
-        /* 00000020 */ LONG(0x00000000) /* .... : DCD X ; zero init size*/
+        /* 00000020 */ LONG(_zinit_end - _zinit_start) /* .... : DCD X ; zero init size*/
         /* 00000024 */ LONG(0x00000000) /* .... : DCD X ; debug type */
         /* 00000028 */ LONG(AIF_BASE)   /* .... : DCD X ; code link address */
         /* 0000002c */ LONG(0x00000000) /* .... : DCD X ; workspace size */
@@ -47,7 +47,8 @@ SECTIONS
 
         . = 0x100;
 
-        start.o(.text)
+        KEEP(*(.init.aif));
+        *(.init.aif)
         *(.text)
         . = ALIGN(16);
         _code_end = ABSOLUTE(.);
@@ -56,6 +57,8 @@ SECTIONS
         _rodata_start = ABSOLUTE(.);
         *(.rodata)
         *(.rodata.*)
+        *(.got)
+        *(.got.plt)
         . = ALIGN(16);
         _rodata_end = ABSOLUTE(.);
         _rodata_size = _rodata_end - _rodata_start;
@@ -67,5 +70,29 @@ SECTIONS
         . = ALIGN(16);
         _data_end = ABSOLUTE(.);
         _data_size = _data_end - _data_start;
+
+        /* The zero initialised region */
+        . = ALIGN(16);
+
     } > aif
+
+    .text (NOLOAD) : {
+        _zinit_start = ABSOLUTE(.);
+        *(.bss .bss.*)
+        _zinit_end = ABSOLUTE(.);
+        _zinit_size = _zinit_end - _zinit_start;
+    } > aif
+
+    /* Place the eh_frame and others out of the way - we don't use them yet */
+    .eh_frame (NOLOAD) : { *(.eh_frame) }
+    .igot (NOLOAD) : { *(.igot.*) }
+    .iplt (NOLOAD) : { *(.iplt) }
+
+    .interp (NOLOAD) : { *(.interp) }
+    .dynsym (NOLOAD) : { *(.dynsym) }
+    .dynstr (NOLOAD) : { *(.dynstr) }
+    .hash (NOLOAD) : { *(.hash) }
+    .gnu.hash (NOLOAD) : { *(.gnu.hash) }
+
+    __patchable_function_entries : { *(__patchable_function_entries) }
 }
