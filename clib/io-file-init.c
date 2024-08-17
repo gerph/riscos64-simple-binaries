@@ -19,7 +19,7 @@ void __io_final(void)
     {
         while (cur)
         {
-            FILE *chain = __file_list->_chain;
+            FILE *chain = cur->_chain;
             free(cur);
             cur = chain;
         }
