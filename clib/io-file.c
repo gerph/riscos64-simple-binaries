@@ -176,6 +176,27 @@ size_t fwrite(const void *ptr, size_t size, size_t nitems, FILE *fh)
     _kernel_oserror *err;
     if (!fh)
         return -1;
+    if (size == 0 || nitems == 0)
+        return 0;
+    if (fh == stdout || fh == stderr)
+    {
+        size_t total = size * nitems;
+        while (total)
+        {
+            const char *next_nl = memchr(ptr, '\n', total);
+            if (next_nl == NULL)
+            {
+                os_writen(ptr, total);
+                break;
+            }
+            int to_nl = (next_nl - (const char *)ptr);
+            os_writen(ptr, to_nl);
+            os_newline();
+            total -= to_nl + 1;
+            ptr = ((const char *)ptr) + to_nl + 1;
+        }
+        return size * nitems;
+    }
 
     CHECK_MAGIC(fh, -1);
 
