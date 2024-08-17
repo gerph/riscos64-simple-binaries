@@ -9,6 +9,7 @@ int myprint(char *str)
         os_writec(*str);
         n += 1;
     }
+    os_newline();
 
     return n;
 }
