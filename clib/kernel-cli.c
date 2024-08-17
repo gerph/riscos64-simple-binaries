@@ -14,5 +14,5 @@ int _kernel_oscli(const char *cmd)
     err = _kernel_swi(OS_CLI, &regs, NULL);
     if (err)
         _last_error = err;
-    return err == NULL;
+    return err != NULL;
 }
