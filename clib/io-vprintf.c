@@ -102,10 +102,21 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
             }
 
         }
-        if (c=='l')
+        if (c=='h')
+        {
+            params.param_width = c; /* Half word */
+            c = *format++;
+        }
+        else if (c=='l')
         {
             params.param_width = c;
             c = *format++;
+            if (c=='l')
+            {
+                /* Long-long */
+                params.param_width = 'L';
+                c = *format++;
+            }
         }
 
         switch (c)
@@ -148,6 +159,7 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
                 n += out->write0(out, "0x");
 
             case 'x':
+            case 'X':
                 {
                     char hex[16]; /* FIXME: Should be width for arch */
                     int start = -1;
@@ -156,7 +168,10 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
                     for (i=sizeof(hex)-1; i>-1; i--) /* FIXME: widen */
                     {
                         int v = value & 15;
-                        hex[i] = "0123456789ABCDEF"[v];
+                        char x = "0123456789ABCDEF"[v];
+                        if (c == 'x')
+                            x |= 32; /* Lower case */
+                        hex[i] = x;
                         value = value >> 4;
                         if (start == -1 && value == 0)
                         {
