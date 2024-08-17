@@ -42,6 +42,11 @@ CFLAGS += -O1
 
 # Configured heap type (not currently runtime selectable)
 CFLAGS += -DHEAP_TYPE=O1heap
+# Types:
+#	Accumulator - Just accumulates allocations in the application space.
+#	              No frees.
+#	OS_Heap - Uses OS_Heap for the entire application space.
+#	O1heap - Uses the O(1) heap algorithm.
 
 # Options for this build
 CFLAGS += 
