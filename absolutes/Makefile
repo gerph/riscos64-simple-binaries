@@ -69,6 +69,8 @@ clean:
 	-rm -f *.o *.a *.bin *,ff8 *.map
 	cd ${CLIBDIR} && make clean
 
+CRT_OBJS = 	${CLIBDIR}/libcrt.a
+
 ifeq (${CROSS_ROOT},)
 # If we're outside the docker container, re-run ourselves inside the container
 
@@ -77,12 +79,12 @@ CLIBDIR = $(shell realpath ../clib)
 ifneq ($(filter-out all shell dockcross-linux-arm64 clean,${MAKECMDGOALS}),)
 # The command wasn't one of our invocation commands above
 .PHONY: ${MAKECMDGOALS}
-${MAKECMDGOALS}: dockcross-linux-arm64 ${CLIBDIR}/libcrt.a
-	./dockcross-linux-arm64 --args "-v ${CLIBDIR}:/ro64/clib" -- make ${MAKECMDGOALS} TARGET=${TARGET}
+${MAKECMDGOALS}: dockcross-linux-arm64 ${CRT_OBJS}
+	./dockcross-linux-arm64 --args "-v ${CLIBDIR}:/ro64/clib" -- bash -c "cd . && make ${MAKECMDGOALS} TARGET=${TARGET}"
 else
 .PHONY: ${DEFAULT_GOAL}
-${DEFAULT_GOAL}: dockcross-linux-arm64 ${CLIBDIR}/libcrt.a
-	./dockcross-linux-arm64 --args "-v ${CLIBDIR}:/ro64/clib" -- make TARGET=${TARGET}
+${DEFAULT_GOAL}: dockcross-linux-arm64 ${CRT_OBJS}
+	./dockcross-linux-arm64 --args "-v ${CLIBDIR}:/ro64/clib" -- bash -c "cd . && make ${MAKECMDGOALS} TARGET=${TARGET}"
 endif
 
 ${CLIBDIR}/libcrt.a:
@@ -90,9 +92,9 @@ ${CLIBDIR}/libcrt.a:
 
 else
 # We are within the docker container
+
 CLIBDIR = /ro64/clib
 
-CRT_OBJS = 	${CLIBDIR}/libcrt.a
 
 CC = aarch64-unknown-linux-gnu-gcc
 AS = aarch64-unknown-linux-gnu-as

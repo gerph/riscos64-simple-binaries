@@ -151,10 +151,10 @@ OBJS = 	\
 		swis-heap.o \
 		swis.o \
 		start.o \
-		start-exit.o
+		start-exit.o \
 
-#		fabs.o \
 #		trunc.o \
+#		fabs.o \
 
 
 libcrt.a: ${OBJS}

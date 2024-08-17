@@ -67,6 +67,8 @@ _start:
         LDR     w4, [x1, #0x18] // data size
         ADD     x2, x1, x2
         ADD     x2, x2, x4
+        LDR     w4, [x1, #0x20] // zero init size
+        ADD     x2, x2, x4
 
         BL      __main
         B       _Exit

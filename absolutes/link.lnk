@@ -50,6 +50,7 @@ SECTIONS
         KEEP(*(.init.aif));
         *(.init.aif)
         *(.text)
+        *(.text.*)
         . = ALIGN(16);
         _code_end = ABSOLUTE(.);
         _code_size = _code_end - _code_start;
