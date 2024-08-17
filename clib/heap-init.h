@@ -9,8 +9,8 @@
 #define HEAPINIT_H
 
 extern char *__heap_base;
-extern char *__heap_hwm;
 extern char *__heap_end;
+extern int __heap_inited;
 
 void __heap_init(void *append, void *heap_limit);
 

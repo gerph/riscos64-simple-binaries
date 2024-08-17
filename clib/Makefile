@@ -34,11 +34,14 @@ CFLAGS += -Iriscos_headers/C/ -Iriscos_headers/Lib/
 
 # Options to allow function signatures to appear RISC OS-like
 ifeq (${USE_FUNC_SIGNATURE},1)
-CFLAGS += -fpatchable-function-entry=5,5
+CFLAGS += -fpatchable-function-entry=8,8
 endif
 
 # Optimisation options
 CFLAGS += -O1
+
+# Configured heap type (not currently runtime selectable)
+CFLAGS += -DHEAP_TYPE=O1heap
 
 # Options for this build
 CFLAGS += 
@@ -104,7 +107,13 @@ OBJS = 	\
 		assert.o \
 		ctypes.o \
 		errno.o \
-		heap_init.o \
+		\
+		heap-accumulator.o \
+		heap-osheap.o \
+		heap-o1heap.o \
+		heap-o1heap-shim.o \
+		heap-init.o \
+		\
 		io-constants.o \
 		io-console.o \
 		io-file-init.o \
