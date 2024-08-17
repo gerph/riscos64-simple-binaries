@@ -1,5 +1,4 @@
 .include "swis.hdr"
-.include "printmacros.hdr"
 
 .text
 
@@ -7,13 +6,28 @@
 
 _entry:
         STP     x29, x30, [sp, #-16]!
-        PrintLine "Hello world"
-        PrintMessage "Environment string: "
-        PrintString x1
-        PrintLine ""
+        MOV     x3, x1
+
+        MOV     x10, #OS_WriteS
+        SVC     #0
+.asciz "Hello "
+.balign 4
+
+        LDRB    w1, [x3]
+        ADR     x2, message_world
+        CMP     w1, #0
+        CSEL    x0, x2, x3, eq
+
+        MOV     x10, #OS_Write0
+        SVC     #0
+
+        MOV     x10, #OS_NewLine
+        SVC     #0
+
         MOV     x0, #0      // no error return
         LDP     x29, x30, [sp], #16
         RET
 
-.bss
-.skip 20
+message_world:
+.asciz "world"
+

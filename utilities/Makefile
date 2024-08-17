@@ -16,7 +16,8 @@ USE_FUNC_SIGNATURE ?= 1
 
 CROSS_ROOT = ${shell echo $$CROSS_ROOT}
 
-ALL_TARGETS = hello_world
+ALL_TARGETS = hello_world \
+			  hello_world_macros
 
 
 
