@@ -54,6 +54,8 @@ FILE *fopen(const char *filename, const char *mode)
     fh->_chain = __file_list;
     __file_list = fh;
 
+    fh->_flags = _IO_MAGIC; /* Mark as valid */
+
     return fh;
 }
 
@@ -65,8 +67,8 @@ int fclose(FILE *fh)
         CHECK_MAGIC(fh, -1);
         if (fh->_fileno)
             _swix(OS_Find, _INR(0, 1), 0, fh->_fileno);
-        fh->_fileno = 0;
         fh->_flags = -1; /* Clear the magic code */
+        fh->_fileno = 0;
 
         /* Unlink from chain */
         FILE **lastp = &__file_list;
@@ -118,6 +120,7 @@ int fseek(FILE *fh, long int pos, int whence)
             break;
     }
     _swix(OS_Args, _INR(0, 2), 1, fh->_fileno, pos);
+    return pos;
 }
 
 
@@ -125,6 +128,8 @@ long int ftell(FILE *fh)
 {
     _kernel_oserror *err;
     if (!fh)
+        return -1;
+    if (fh == stdin || fh == stdout || fh == stderr)
         return -1;
 
     CHECK_MAGIC(fh, -1);
