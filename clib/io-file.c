@@ -158,6 +158,17 @@ size_t fread(void *ptr, size_t size, size_t nitems, FILE *fh)
     _kernel_oserror *err;
     if (!fh)
         return -1;
+    if (fh == stdin)
+    {
+        if (size == 1 && nitems == 1)
+        {
+            char *p = (char*)ptr;
+            *p = fgetc(fh);
+            return 1;
+        }
+
+        return -1;
+    }
 
     CHECK_MAGIC(fh, -1);
 
@@ -215,7 +226,7 @@ int fgetc(FILE *fh)
     _kernel_oserror *err;
     if (!fh)
         return -1;
-    if (fh == stdout || fh == stderr)
+    if (fh == stdin)
         return os_readc();
 
     CHECK_MAGIC(fh, -1);
