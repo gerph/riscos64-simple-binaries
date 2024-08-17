@@ -6,6 +6,7 @@
 .global __os_write0
 .global __os_writen
 .global __os_newline
+.global __os_readescapestate
 .global __os_generateerror
 
 
@@ -64,6 +65,14 @@ __os_newline:
     STP     x29, x30, [sp, #-16]!
     MOV     x10, #0x3                   // OS_NewLine
     SVC     #0
+    LDP     x29, x30, [sp], #16
+    RET
+
+__os_readescapestate:
+    STP     x29, x30, [sp, #-16]!
+    MOV     x10, #0x2C                  // OS_ReadEscapeState
+    SVC     #0
+// We avoid flag returns from SWIs on RISC OS 64, so this returns the state in x0
     LDP     x29, x30, [sp], #16
     RET
 

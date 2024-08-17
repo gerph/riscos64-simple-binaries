@@ -14,6 +14,7 @@
 #define os_writen __os_writen
 #define os_newline __os_newline
 #define os_generateerror __os_generateerror
+#define os_readescapestate __os_readescapestate
 #define os_module __os_module
 #define os_heap __os_heap
 #define os_byte_out1 __os_byte_out1
@@ -31,6 +32,7 @@ void os_write0(const char *str);
 void os_writen(const char *str, int n);
 void os_newline(void);
 void os_generateerror(_kernel_oserror *err);
+int os_readescapestate(void);
 
 _kernel_oserror *os_heap(int heapop, void *heapbase, void *ptr, int size, void **newptr);
 _kernel_oserror *os_module(int moduleop, void *ptr, int size, void **newptr);

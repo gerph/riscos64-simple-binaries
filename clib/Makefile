@@ -113,6 +113,7 @@ OBJS = 	\
 		io-printf.o \
 		io-sprintf.o \
 		io-vprintf.o \
+		kernel-escape.o \
 		kernel-state.o \
 		kernel-cli.o \
 		kernel.o \

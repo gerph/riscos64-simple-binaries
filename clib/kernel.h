@@ -17,6 +17,7 @@ _kernel_oserror *_kernel_swi(int swinum, _kernel_swi_regs *in, _kernel_swi_regs 
 int _kernel_oscli(const char *cli);
 _kernel_oserror *_kernel_last_oserror(void);
 
+int _kernel_escape_seen(void);
 
 _kernel_oserror *_kernel_setenv(const char *var, const char *val);
 _kernel_oserror *_kernel_getenv(const char *var, char *buf, unsigned size);
