@@ -254,6 +254,19 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
                     /* Special case 0 */
                     if (p == intstr)
                         *p++ = '0';
+                    if (params.field_width)
+                    {
+                        /* They wanted this laid out into a field */
+                        char lead = params.leading_char ? params.leading_char : ' ';
+                        char shortbuf[8];
+                        int count = params.field_width - (p-intstr);
+                        memset(shortbuf, lead, 8);
+                        while (count > 0)
+                        {
+                            n += out->writen(out, shortbuf, count > 8 ? 8 : count);
+                            count -= 8;
+                        }
+                    }
 
                     n += out->writen(out, intstr, p - intstr);
                 }
