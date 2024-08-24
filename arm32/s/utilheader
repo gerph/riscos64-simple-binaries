@@ -11,7 +11,7 @@ _start
         DCD     0                       ; Read only size
         DCD     0                       ; Read/write size
         DCD     64                      ; built for 64bit
-        DCD     0                       ; AArch64 entry point
+        DCD     0                       ; AArch64 entry point offset
 arm32_entry
         ADR     r0, error_block         ; was decompression
         CMP     r0, #1<<31              ; set V flag

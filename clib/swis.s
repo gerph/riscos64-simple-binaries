@@ -31,8 +31,7 @@ __os_inkey:
     LSR     x2, x0, #8
     MOV     x0, #0x81                   // INKEY
     MOV     x10, #0x6                   // OS_Byte
-    SVC     #0
-                                        // Returns R1 = character read
+    SVC     #0                          // Returns R1 = character read
                                         //         R2 = 0 =>char was read, 27=>escape, 255=>nothing read
 // We are going to return -1 for nothing read, and -2 for escape
     CMP     x2, #27

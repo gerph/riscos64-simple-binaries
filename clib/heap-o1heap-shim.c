@@ -45,6 +45,18 @@ void HEAP_TYPEFUNC(O1heap, init) (void *base, size_t size)
 void * HEAP_TYPEFUNC(O1heap, alloc) (size_t size)
 {
     void *mem = (void*)o1heapAllocate(heap, size);
+#ifdef DEBUG
+    if (!mem)
+    {
+        dprintf("Failed to allocate %i bytes\n", size);
+        O1HeapDiagnostics diag = o1heapGetDiagnostics(heap);
+        dprintf("  capacity  = %i\n", diag.capacity);
+        dprintf("  allocated = %i\n", diag.allocated);
+        dprintf("  peak      = %i\n", diag.peak_allocated);
+        dprintf("  peak req  = %i\n", diag.peak_request_size);
+        dprintf("  ooms      = %i\n", diag.oom_count);
+    }
+#endif
     return mem;
 }
 

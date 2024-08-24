@@ -40,6 +40,32 @@ typedef struct alloc_s {
 } alloc_t;
 
 
+#ifdef HEAP_FAIL_IS_FATAL
+void __heap_alloc_failed(size_t size)
+{
+    char buffer[80];
+#define MSG0 "OUT OF MEMORY - need &"
+#define MSG1 " bytes"
+    char *s;
+    memcpy(buffer, MSG0, sizeof(MSG0) - 1);
+    s = buffer + sizeof(MSG0) - 1;
+    uint64_t need = size;
+    int started = 0;
+    for(int i=60; i >= 0; i-=4)
+    {
+        unsigned int v = (need>>i) & 15;
+        if (v || started || i == 0)
+        {
+            started = 1;
+            *s++ = "0123456789ABCDEF"[v];
+        }
+    }
+    memcpy(s, MSG1, sizeof(MSG1));
+    __heap_fatal(buffer);
+}
+#endif
+
+
 __THROW __attribute_malloc__
 void *malloc (size_t size)
 {
@@ -87,25 +113,7 @@ void *malloc (size_t size)
 
 #ifdef HEAP_FAIL_IS_FATAL
     dprintf("Allocation failed\n");
-    char buffer[80];
-#define MSG0 "OUT OF MEMORY - need &"
-#define MSG1 " bytes"
-    char *s;
-    memcpy(buffer, MSG0, sizeof(MSG0) - 1);
-    s = buffer + sizeof(MSG0) - 1;
-    uint64_t need = size;
-    int started = 0;
-    for(int i=60; i >= 0; i-=4)
-    {
-        unsigned int v = (need>>i) & 15;
-        if (v || started || i == 0)
-        {
-            started = 1;
-            *s++ = "0123456789ABCDEF"[v];
-        }
-    }
-    memcpy(s, MSG1, sizeof(MSG1));
-    __heap_fatal(s);
+    __heap_alloc_failed(size);
 #else
     dprintf("%p\n", NULL);
     return NULL;
@@ -187,7 +195,7 @@ void *realloc(void *block, size_t size)
     if (allocated == NULL)
     {
 #ifdef HEAP_FAIL_IS_FATAL
-        __heap_fatal("OUT OF MEMORY - realloc failed");
+        __heap_alloc_failed(size);
 #endif
     }
     else

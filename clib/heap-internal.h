@@ -1,6 +1,6 @@
 
 /* Define this to make failures of the heap fatal */
-#define HEAP_FAIL_IS_FATAL
+//#define HEAP_FAIL_IS_FATAL
 
 #ifndef HEAP_TYPE
 #error HEAP_TYPE must be set
