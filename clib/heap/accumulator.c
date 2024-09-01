@@ -6,9 +6,10 @@
  ******************************************************************/
 
 #include <stdlib.h>
+#include <string.h>
 
-#include "heap-internal.h"
-#include "heap-init.h"
+#include "internal.h"
+#include "init.h"
 
 static void *last_alloc = NULL;
 static char *__heap_hwm = NULL;
@@ -65,3 +66,10 @@ void * HEAP_TYPEFUNC(Accumulator, realloc) (void *block, size_t new_size, size_t
         memcpy(new_block, block, old_size);
     return new_block;
 }
+
+__heap_implementation_t __heap_accumulator = {
+    HEAP_TYPEFUNC(Accumulator, init),
+    HEAP_TYPEFUNC(Accumulator, alloc),
+    HEAP_TYPEFUNC(Accumulator, free),
+    HEAP_TYPEFUNC(Accumulator, realloc),
+};

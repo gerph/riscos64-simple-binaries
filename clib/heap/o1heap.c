@@ -16,7 +16,7 @@
 //
 // FROM: https://github.com/pavel-kirienko/o1heap
 
-#include "heap-o1heap.h"
+#include "o1heap.h"
 #include <assert.h>
 #include <limits.h>
 

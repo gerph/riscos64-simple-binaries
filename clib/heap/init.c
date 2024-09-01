@@ -10,13 +10,16 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "swis.h"
+#include "../swis.h"
 
-#include "heap-init.h"
+#include "internal.h"
+#include "init.h"
 
 int __heap_inited;
 char *__heap_base;
 char *__heap_end;
+
+__heap_implementation_t * __attribute__((weak)) __heap_implementation;
 
 void __heap_init(void *append, void *heap_limit)
 {
@@ -24,5 +27,7 @@ void __heap_init(void *append, void *heap_limit)
     __heap_base[0] = '\0'; /* Marker that we haven't been initialised */
     __heap_end = (char *)heap_limit;
     __heap_inited = 0;
+    if (!__heap_implementation)
+        __heap_implementation = &__heap_o1;
 }
 
