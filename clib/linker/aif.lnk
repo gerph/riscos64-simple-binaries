@@ -1,0 +1,100 @@
+MEMORY
+{
+    aif (rwx) : ORIGIN = 0x8000, LENGTH = 0x10000000
+}
+
+SECTIONS
+{
+    AIF_BASE = 0x8000;
+
+    .text AIF_BASE :
+    {
+/*        . = AIF_BASE; */
+        _code_start = ABSOLUTE(.);
+        /* 00000000 */ LONG(0xe1a00000) /* MOV     r0, r0 */
+        /* 00000004 */ LONG(0xe1a00000) /* MOV     r0, r0 */
+        /* 00000008 */ LONG(0xe1a00000) /* MOV     r0, r0 */
+        /* 0000000c */ LONG(0xeb00000b) /* BL      &00000040 */
+        /* 00000010 */ LONG(0xef000011) /* SWI     OS_Exit */
+        /* 00000014 */ LONG(_code_size + _rodata_size) /* .... : ANDEQ   r0, r0, r0 ; RO region size */
+        /* 00000018 */ LONG(_data_size - AIF_BASE) /* .... : ANDEQ   r0, r0, r0 ; RW region size */
+        /* 0000001c */ LONG(0x00000000) /* .... : DCD X ; debug size */
+        /* 00000020 */ LONG(_zinit_end - _zinit_start) /* .... : DCD X ; zero init size*/
+        /* 00000024 */ LONG(0x00000000) /* .... : DCD X ; debug type */
+        /* 00000028 */ LONG(AIF_BASE)   /* .... : DCD X ; code link address */
+        /* 0000002c */ LONG(0x00000000) /* .... : DCD X ; workspace size */
+        /* 00000030 */ LONG(0x00000040) /* @... : DCD X ; flags */
+        /* 00000034 */ LONG(0x00000000) /* .... : DCD X ; data link address */
+        /* 00000038 */ LONG(0x00000000) /* .... : DCD X ; reserved */
+        /* 0000003c */ LONG(0x00000000) /* .... : DCD X ; reserved */
+        /* Entry here */
+        /* 00000040 */ LONG(0xe28f0000) /* .... : ADR     r0, &00000048             ; -> [&00000000, &63724141, &20343668, &616e6962] */
+        /* 00000044 */ LONG(0xef00002b) /* +... : SWI     OS_GenerateError */
+        /* 00000048 */ LONG(0x00000000) /* .... : ANDEQ   r0, r0, r0 */
+        /* 0000004c */ LONG(0x63724141) /* AArc : CMNVS   r2, #&40000010            ; #&bfffffef = -1073741841 */
+        /* 00000050 */ LONG(0x20343668) /* h64  : EORSHS  r3, r4, r8, ROR #12 */
+        /* 00000054 */ LONG(0x616e6962) /* bina : Undefined instruction */
+        /* 00000058 */ LONG(0x73656972) /* ries : Undefined instruction */
+        /* 0000005c */ LONG(0x6e616320) /*  can : CDPVS   p3, #6, c6, c1, c0, #1 */
+        /* 00000060 */ LONG(0x20746f6e) /* not  : RSBSHS  r6, r4, lr, ROR #30 */
+        /* 00000064 */ LONG(0x72206562) /* be r : EORVC   r6, r0, #&18800000        ; #411041792 = 392<<20 */
+        /* 00000068 */ LONG(0x6f206e75) /* un o : SWIVS   &206e75 */
+        /* 0000006c */ LONG(0x3233206e) /* n 32 : EORSLO  r2, r3, #&6e              ; #110 = 'n' */
+        /* 00000070 */ LONG(0x20746962) /* bit  : RSBSHS  r6, r4, r2, ROR #18 */
+        /* 00000074 */ LONG(0x43534952) /* RISC : CMPMI   r3, #&148000              ; #1343488 = 328<<12 */
+        /* 00000078 */ LONG(0x00534f20) /*  OS. : SUBSEQ  r4, r3, r0, LSR #30 */
+        /* 0000007c */ LONG(0x00000000) /* .... : ANDEQ   r0, r0, r0 */
+
+        . = 0x100;
+
+        KEEP(*(.init.aif));
+        *(.init.aif)
+        *(.text)
+        *(.text.*)
+        . = ALIGN(16);
+        _code_end = ABSOLUTE(.);
+        _code_size = _code_end - _code_start;
+
+        _rodata_start = ABSOLUTE(.);
+        *(.rodata)
+        *(.rodata.*)
+        *(.got)
+        *(.got.plt)
+        . = ALIGN(16);
+        _rodata_end = ABSOLUTE(.);
+        _rodata_size = _rodata_end - _rodata_start;
+
+        _rodata_plus_code_size = _rodata_size + _code_size;
+
+        _data_start = ABSOLUTE(.);
+        *(.data)
+        . = ALIGN(16);
+        _data_end = ABSOLUTE(.);
+        _data_size = _data_end - _data_start;
+
+        /* The zero initialised region */
+        . = ALIGN(16);
+
+    } > aif
+
+    .text (NOLOAD) : {
+        _zinit_start = ABSOLUTE(.);
+        *(.bss .bss.*)
+        . = ALIGN(16);
+        _zinit_end = ABSOLUTE(.);
+        _zinit_size = _zinit_end - _zinit_start;
+    } > aif
+
+    /* Place the eh_frame and others out of the way - we don't use them yet */
+    .eh_frame (NOLOAD) : { *(.eh_frame) }
+    .igot (NOLOAD) : { *(.igot.*) }
+    .iplt (NOLOAD) : { *(.iplt) }
+
+    .interp (NOLOAD) : { *(.interp) }
+    .dynsym (NOLOAD) : { *(.dynsym) }
+    .dynstr (NOLOAD) : { *(.dynstr) }
+    .hash (NOLOAD) : { *(.hash) }
+    .gnu.hash (NOLOAD) : { *(.gnu.hash) }
+
+    __patchable_function_entries : { *(__patchable_function_entries) }
+}

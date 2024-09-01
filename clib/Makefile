@@ -31,6 +31,8 @@ export: targetted
 	rmdir export/Lib/CLib
 	rm export/_marker
 	cp -R bin export/
+	cp -R asm export/Asm
+	cp -R linker export/linker
 
 # NOTE: Not used yet
 all: export_headers
