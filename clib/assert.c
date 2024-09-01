@@ -1,6 +1,6 @@
 #include "kernel.h"
 #include "swis.h"
-#include "swis-os.h"
+#include "swis_os.h"
 
 void __assert_fail(const char *message)
 {

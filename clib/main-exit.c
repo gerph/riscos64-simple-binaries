@@ -6,7 +6,7 @@
 #include "heap/init.h"
 #include "io-file-init.h"
 #include "sysvars-init.h"
-#include "swis-os.h"
+#include "swis_os.h"
 
 /* Define this to make the atexit() handlers go on the heap, rather than zero-init */
 //#define ATEXIT_HANDLERS_ON_HEAP

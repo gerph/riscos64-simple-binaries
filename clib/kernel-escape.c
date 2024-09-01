@@ -6,7 +6,7 @@
  ******************************************************************/
 
 #include "kernel.h"
-#include "swis-os.h"
+#include "swis_os.h"
 
 int _kernel_escape_seen(void)
 {

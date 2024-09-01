@@ -11,7 +11,7 @@
 #include <string.h>
 
 #include "swis.h"
-#include "swis-os.h"
+#include "swis_os.h"
 #include "kernel-state.h"
 
 #include "heap/init.h"

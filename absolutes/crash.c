@@ -1,6 +1,6 @@
 #include <stdarg.h>
 #include "swis.h"
-#include "clib/swis-os.h"
+#include "swis_os.h"
 
 int myprint(const char *str)
 {
