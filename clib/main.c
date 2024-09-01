@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 #include "heap/init.h"
-#include "swis-os.h"
+#include "swis_os.h"
 
 /* Define this to put the arguments on the stack, rather then in the heap */
 #define BUILD_ARGV_ON_STACK

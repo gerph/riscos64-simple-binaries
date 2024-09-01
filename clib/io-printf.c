@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "swis.h"
-#include "swis-os.h"
+#include "swis_os.h"
 #include "io-vprintf.h"
 
 

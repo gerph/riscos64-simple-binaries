@@ -27,12 +27,18 @@ jobs:
 
     outputs:
       version: ${{ steps.version.outputs.version }}
-      leafname: ${{ steps.version.outputs.leafname }}
+      leafname_bin: ${{ steps.version.outputs.leafname_bin }}
+      leafname_lib: ${{ steps.version.outputs.leafname_lib }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
+
+      - name: Build the C library
+        run: |
+          cd clib
+          make export
 
       - name: Build the absolutes
         run: |
@@ -49,9 +55,10 @@ jobs:
           cd utilities
           make all
 
-      - name: Build an archive
+      - name: Build the archives
         run: |
-          zip -9r RISCOSBinaries.zip absolutes/*,ff8 modules/*,ffa utilities/*,ffc
+          zip -9r RISCOS64-Binaries.zip absolutes/*,ff8 modules/*,ffa utilities/*,ffc
+          cd clib/export ; zip -9r ../../RISCOS64-CLib.zip *
 
       - name: Give the output a versioned name
         id: version
@@ -62,18 +69,24 @@ jobs:
               version=$(git rev-parse --short HEAD)
           fi
           echo "This is version: $version"
-          leafname="RISCOSBinaries-$version.zip"
-          mv RISCOSBinaries.zip "RISCOSBinaries-$version.zip"
+          leafname_bin="RISCOS64-Binaries-$version.zip"
+          leafname_lib="RISCOS64-CLib-$version.zip"
+          mv RISCOS64-Binaries.zip "RISCOS64-Binaries-$version.zip"
+          mv RISCOS64-CLib.zip "RISCOS64-CLib-$version.zip"
 
           echo "version=$version" >> $GITHUB_OUTPUT
-          echo "leafname=$leafname" >> $GITHUB_OUTPUT
+          echo "leafname_lib=$leafname_lib" >> $GITHUB_OUTPUT
+          echo "leafname_bin=$leafname_bin" >> $GITHUB_OUTPUT
 
       - uses: actions/upload-artifact@v4
         with:
-          name: RISCOS64-build
-          path: ${{ steps.version.outputs.leafname }}
-        # The artifact that is downloadable from the Actions is actually a zip of the artifacts
-        # that we supply. So it will be a regular Zip file containing a RISC OS Zip file.
+          name: RISCOS64-binaries
+          path: ${{ steps.version.outputs.leafname_bin }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RISCOS64-clib
+          path: ${{ steps.version.outputs.leafname_lib }}
 
   # The release only triggers when the thing that was pushed was a tag starting with 'v'
   release:
@@ -86,7 +99,12 @@ jobs:
       - name: Download built RISC OS 64 binaries
         uses: actions/download-artifact@v4
         with:
-          name: RISCOS64-build
+          name: RISCOS64-binaries
+
+      - name: Download built RISC OS 64 binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: RISCOS64-clib
 
       - name: Create Release
         id: create_release
@@ -94,5 +112,5 @@ jobs:
         with:
           prerelease: false
           draft: true
-          artifacts: "${{ needs.build.outputs.leafname }}"
+          artifacts: "${{ needs.build.outputs.leafname_bin }} ${{ needs.build.outputs.leafname_lib }}"
           artifactContentType: application/zip

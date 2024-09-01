@@ -12,44 +12,12 @@
 
 TARGET ?= module_init
 
-USE_FUNC_SIGNATURE ?= 1
-
 CROSS_ROOT = ${shell echo $$CROSS_ROOT}
 
 ALL_TARGETS = module_init
 
 
 
-
-# Remove the flags that might make code think it's compiling for linux system.
-CFLAGS = -U__linux -U__linux__ -U__unix__ -U__unix -Ulinux -Uunix -U__gnu_linux__
-
-# Add the definitions to indicate that we're compiling for RISC OS
-CFLAGS += -D__riscos -D__riscos64
-
-# Allow us to build without assuming the standard library is present
-CFLAGS += -nostdlib -ffreestanding -march=armv8-a
-#CFLAGS += -nostdlib -ffreestanding -march=armv8-a+nofp
-
-# Add the exports directory to those things we'll build with
-CFLAGS += -I${CLIBDIR}/riscos_headers/C -I${CLIBDIR}/riscos_headers/Lib/ -I${CLIBDIR}/riscos_headers/Lib/CLib/
-
-# Options to allow function signatures to appear RISC OS-like
-ifeq (${USE_FUNC_SIGNATURE},1)
-CFLAGS += -fpatchable-function-entry=20,20
-endif
-
-# Optimisation options
-CFLAGS += -O1
-
-# Options for this build
-CFLAGS += -I${CLIBDIR}/riscos_headers/Lib/tboxlibs/
-
-# Assembler flags
-AFLAGS = -march=armv8-a
-
-# Flags for the linker
-LDFLAGS = -T link.lnk
 
 targetted:
 	make ${TARGET},ffa TARGET=${TARGET}
@@ -67,34 +35,70 @@ dockcross-linux-arm64:
 clean:
 	-rm -f *.o *.a *.bin *,ffa *.map
 
+CRT_OBJS = 	${CLIBDIR}/libcrt.a
+
 ifeq (${CROSS_ROOT},)
 # If we're outside the docker container, re-run ourselves inside the container
 
-CLIBDIR = $(shell realpath ../clib)
+CLIBDIR = $(shell realpath ../clib/export)
 
 ifneq ($(filter-out all shell dockcross-linux-arm64 clean,${MAKECMDGOALS}),)
 # The command wasn't one of our invocation commands above
 .PHONY: ${MAKECMDGOALS}
-${MAKECMDGOALS}: dockcross-linux-arm64 ${CLIBDIR}/libcrt.a
-	./dockcross-linux-arm64 --args "-v ${CLIBDIR}:/ro64/clib" -- make ${MAKECMDGOALS} TARGET=${TARGET}
+${MAKECMDGOALS}: dockcross-linux-arm64 ${CRT_OBJS}
+	./dockcross-linux-arm64 --args "-v ${CLIBDIR}:/ro64/clib" -- bash -c "cd . && make ${MAKECMDGOALS} TARGET=${TARGET}"
 else
 .PHONY: ${DEFAULT_GOAL}
-${DEFAULT_GOAL}: dockcross-linux-arm64 ${CLIBDIR}/libcrt.a
-	./dockcross-linux-arm64 --args "-v ${CLIBDIR}:/ro64/clib" -- make TARGET=${TARGET}
+${DEFAULT_GOAL}: dockcross-linux-arm64 ${CRT_OBJS}
+	./dockcross-linux-arm64 --args "-v ${CLIBDIR}:/ro64/clib" -- bash -c "cd . && make ${MAKECMDGOALS} TARGET=${TARGET}"
 endif
 
 ${CLIBDIR}/libcrt.a:
-	cd ${CLIBDIR}; make
+	@echo C library has not been exported >&2
+	@echo Use 'make export' in the clib directory >&2
+	@false
 
 else
 # We are within the docker container
+
 CLIBDIR = /ro64/clib
 
-CRT_OBJS = 	${CLIBDIR}/libcrt.a
+USE_FUNC_SIGNATURE ?= 1
+
+# Remove the flags that might make code think it's compiling for linux system.
+CFLAGS = -U__linux -U__linux__ -U__unix__ -U__unix -Ulinux -Uunix -U__gnu_linux__
+
+# Add the definitions to indicate that we're compiling for RISC OS
+CFLAGS += -D__riscos -D__riscos64
+
+# Allow us to build without assuming the standard library is present
+CFLAGS += -nostdlib -ffreestanding -march=armv8-a
+#CFLAGS += -nostdlib -ffreestanding -march=armv8-a+nofp
+
+# Add the exports directory to those things we'll build with
+CFLAGS += -I${CLIBDIR}/C -I${CLIBDIR}/Lib/ -I${CLIBDIR}
+
+# Options to allow function signatures to appear RISC OS-like
+ifeq (${USE_FUNC_SIGNATURE},1)
+CFLAGS += -fpatchable-function-entry=10,10
+endif
+
+# Optimisation options
+CFLAGS += -O1
+
+# Options for this build
+CFLAGS += 
+
+# Assembler flags
+AFLAGS = -march=armv8-a
+
+# Flags for the linker
+LDFLAGS = -T link.lnk
 
 CC = aarch64-unknown-linux-gnu-gcc
 AS = aarch64-unknown-linux-gnu-as
 LD = aarch64-unknown-linux-gnu-ld
+AR = aarch64-unknown-linux-gnu-ar
 OBJCOPY = aarch64-unknown-linux-gnu-objcopy
 
 OBJS =	${TARGET}.o
@@ -114,7 +118,7 @@ ${TARGET}.map: link.lnk ${OBJS} ${CRT_OBJS}
 ifeq (${USE_FUNC_SIGNATURE},1)
 ${TARGET},ffa: ${TARGET}.bin ${TARGET}.map
 	${OBJCOPY} -O binary -j .text ${TARGET}.bin $@
-	python riscos_symbols.py ${TARGET}.map ${TARGET},ffa
+	python ${CLIBDIR}/bin/riscos_symbols.py ${TARGET}.map $@
 else
 ${TARGET},ffa: ${TARGET}.bin
 	${OBJCOPY} -O binary -j .text ${TARGET}.bin $@

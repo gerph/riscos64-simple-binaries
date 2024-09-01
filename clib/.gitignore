@@ -4,4 +4,6 @@ dockcross-linux-arm64
 *.a
 *.bin
 *.map
+export/
 riscos_headers/
+export/

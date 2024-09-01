@@ -7,7 +7,7 @@
 
 #include <stdlib.h>
 #include "../kernel.h"
-#include "../swis-os.h"
+#include "../swis_os.h"
 
 #include "internal.h"
 #include "init.h"

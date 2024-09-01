@@ -5,7 +5,7 @@
  * Date:        10 Aug 2024
  ******************************************************************/
 
-#include "swis-os.h"
+#include "swis_os.h"
 
 int getchar(void)
 {

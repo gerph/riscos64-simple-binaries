@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "swis.h"
-#include "swis-os.h"
+#include "swis_os.h"
 
 
 #define _IO_MAGIC (0x381F0000)
