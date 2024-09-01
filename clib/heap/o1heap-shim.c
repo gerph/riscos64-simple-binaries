@@ -10,10 +10,10 @@
 #include <string.h>
 #include <stdio.h>
 
-#include "heap-internal.h"
-#include "heap-init.h"
+#include "internal.h"
+#include "init.h"
 
-#include "heap-o1heap.h"
+#include "o1heap.h"
 
 //#define DEBUG
 
@@ -75,3 +75,10 @@ void * HEAP_TYPEFUNC(O1heap, realloc) (void *block, size_t new_size, size_t old_
     }
     return new_block;
 }
+
+__heap_implementation_t __heap_o1 = {
+    HEAP_TYPEFUNC(O1heap, init),
+    HEAP_TYPEFUNC(O1heap, alloc),
+    HEAP_TYPEFUNC(O1heap, free),
+    HEAP_TYPEFUNC(O1heap, realloc),
+};

@@ -14,8 +14,8 @@
 #include "swis-os.h"
 #include "kernel-state.h"
 
-#include "heap-init.h"
-#include "heap-internal.h"
+#include "heap/init.h"
+#include "heap/internal.h"
 
 //#define DEBUG
 

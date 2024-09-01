@@ -6,11 +6,11 @@
  ******************************************************************/
 
 #include <stdlib.h>
-#include "kernel.h"
-#include "swis-os.h"
+#include "../kernel.h"
+#include "../swis-os.h"
 
-#include "heap-internal.h"
-#include "heap-init.h"
+#include "internal.h"
+#include "init.h"
 
 
 /* OS_Heap-type heap functions */
@@ -62,3 +62,10 @@ void * HEAP_TYPEFUNC(OSHeap, realloc) (void *block, size_t new_size, size_t old_
         return NULL;
     return p;
 }
+
+__heap_implementation_t __heap_osheap = {
+    HEAP_TYPEFUNC(OSHeap, init),
+    HEAP_TYPEFUNC(OSHeap, alloc),
+    HEAP_TYPEFUNC(OSHeap, free),
+    HEAP_TYPEFUNC(OSHeap, realloc),
+};

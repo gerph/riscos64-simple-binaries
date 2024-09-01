@@ -40,14 +40,6 @@ endif
 # Optimisation options
 CFLAGS += -O1
 
-# Configured heap type (not currently runtime selectable)
-CFLAGS += -DHEAP_TYPE=O1heap
-# Types:
-#	Accumulator - Just accumulates allocations in the application space.
-#	              No frees.
-#	OS_Heap - Uses OS_Heap for the entire application space.
-#	O1heap - Uses the O(1) heap algorithm.
-
 # Options for this build
 CFLAGS += 
 
@@ -92,6 +84,7 @@ dockcross-linux-arm64:
 
 clean:
 	-rm -rf *.o *.a *.bin *,ff8 *.map riscos_headers/
+	-rm -rf heap/*.o
 
 ifeq (${CROSS_ROOT},)
 # If we're outside the docker container, re-run ourselves inside the container
@@ -113,11 +106,11 @@ OBJS = 	\
 		ctypes.o \
 		errno.o \
 		\
-		heap-accumulator.o \
-		heap-osheap.o \
-		heap-o1heap.o \
-		heap-o1heap-shim.o \
-		heap-init.o \
+		heap/accumulator.o \
+		heap/osheap.o \
+		heap/o1heap.o \
+		heap/o1heap-shim.o \
+		heap/init.o \
 		\
 		io-constants.o \
 		io-console.o \

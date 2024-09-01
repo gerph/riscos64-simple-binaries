@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "heap-init.h"
+#include "heap/init.h"
 #include "swis-os.h"
 
 /* Define this to put the arguments on the stack, rather then in the heap */
