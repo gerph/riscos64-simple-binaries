@@ -78,6 +78,13 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
                 c = *format++;
             }
         }
+        else if (c == '*')
+        {
+            /* Field width from the arguments */
+            params.field_width = va_arg(args, uint32_t);
+            c = *format++;
+        }
+
         if (c=='.')
         {
             c = *format++;
