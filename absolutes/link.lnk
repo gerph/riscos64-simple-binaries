@@ -80,6 +80,7 @@ SECTIONS
     .text (NOLOAD) : {
         _zinit_start = ABSOLUTE(.);
         *(.bss .bss.*)
+        . = ALIGN(16);
         _zinit_end = ABSOLUTE(.);
         _zinit_size = _zinit_end - _zinit_start;
     } > aif

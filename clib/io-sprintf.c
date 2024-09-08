@@ -7,16 +7,17 @@ typedef struct outputterstr_t {
     char *start;
     char *p;
     int size;
+    int left;
 } outputterstr_t;
 
 static int str_writen(outputter_t *out, const char *str, size_t len)
 {
     outputterstr_t *outs = (outputterstr_t *)out;
-    //printf("str_writen : writing %p to %p\n", str, outs->p);
-    if (outs->p + len + 1 - outs->start > outs->size)
+    //printf("str_writen : writing %p (len %i) to %p (left = %i)\n", str, len, outs->p, outs->left);
+    if (outs->left < len)
     {
         /* This would exceed the buffer size */
-        if (outs->p > outs->start + outs->size)
+        if (outs->left <= 0)
         {
             /* It's wholey outside the buffer */
             outs->p += len;
@@ -24,10 +25,10 @@ static int str_writen(outputter_t *out, const char *str, size_t len)
         else
         {
             /* Partially fills the buffer */
-            int space = outs->p + len + 1 - outs->start;
-            memcpy(outs->p, str, space);
-            outs->p[space] = '\0';
+            memcpy(outs->p, str, outs->left);
+            outs->p[outs->left] = '\0';
             outs->p += len;
+            outs->left = 0;
         }
     }
     else
@@ -35,6 +36,7 @@ static int str_writen(outputter_t *out, const char *str, size_t len)
         memcpy(outs->p, str, len);
         outs->p += len;
         *outs->p = '\0';
+        outs->left -= len;
     }
     return len;
 }
@@ -80,6 +82,7 @@ int vsprintf(char *str, const char *format, va_list args)
     out.start = str;
     out.p = str;
     out.size = (str == NULL) ? 0 : 0x7FFFFFFF;
+    out.left = out.size;
     //printf("sprintf(%x, '%s', ...)\n", out.start, format);
     n = _vprintf((outputter_t*)&out, format, args);
     return n;
@@ -92,6 +95,35 @@ int sprintf(char *str, const char *format, ...)
     va_start(args, format);
 
     n = vsprintf(str, format, args);
+
+    va_end(args);
+    return n;
+}
+
+int vsnprintf(char *str, size_t max, const char *format, va_list args)
+{
+    int n;
+    outputterstr_t out;
+    out.out.write0 = str_write0;
+    out.out.writen = str_writen;
+    out.out.writec = str_writec;
+    out.out.newline = str_newline;
+    out.start = str;
+    out.p = str;
+    out.size = max - 1;
+    out.left = out.size;
+    //printf("sprintf(%x, '%s', ...)\n", out.start, format);
+    n = _vprintf((outputter_t*)&out, format, args);
+    return n;
+}
+
+int snprintf(char *str, size_t max, const char *format, ...)
+{
+    int n;
+    va_list args;
+    va_start(args, format);
+
+    n = vsnprintf(str, max, format, args);
 
     va_end(args);
     return n;
