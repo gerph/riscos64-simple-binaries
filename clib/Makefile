@@ -116,7 +116,7 @@ endif
 CFLAGS += -O1
 
 # Options for this build
-CFLAGS += 
+CFLAGS += -DARCH_HAS_DIVISION
 
 # Assembler flags
 AFLAGS = -march=armv8-a

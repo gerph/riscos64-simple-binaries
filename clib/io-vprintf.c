@@ -357,9 +357,14 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
                             {
                                 first = 0;
                                 int digit = 1;
+#ifdef ARCH_HAS_DIVISION
+                                digit = value / m;
+                                value = value % m;
+#else
                                 value -= m;
                                 while (value >= m)
                                     digit += 1, value -= m;
+#endif
                                 *p++ = '0' + digit;
                             }
                             else
