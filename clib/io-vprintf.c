@@ -107,7 +107,7 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
             /* Field width */
             params.field_width = c - '0';
             c = *format++;
-            while (c>='1' && c<='9')
+            while (c>='0' && c<='9')
             {
                 params.field_width = (params.field_width * 10) + c - '0';
                 c = *format++;
@@ -135,7 +135,7 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
                     /* precision */
                     params.precision = c - '0';
                     c = *format++;
-                    while (c>='1' && c<='9')
+                    while (c>='0' && c<='9')
                     {
                         params.precision = (params.precision * 10) + c - '0';
                         c = *format++;
