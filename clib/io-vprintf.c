@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include "io-vprintf.h"
+#include "cvt.h"
 
 /* Define this if printing a '0' just gives zero, with no prefix 0x or 0, etc */
 #define ZERO_IS_JUST_ZERO
@@ -400,64 +401,7 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
                     }
                     else
                     {
-                        /* Decimal printing */
-                        static uint64_t ints[] = {
-                                1,
-                                10,
-                                100,
-                                1000,
-                                10000,
-                                100000,
-                                1000000,
-                                10000000,
-                                100000000,
-                                1000000000,
-                                10000000000,
-                                100000000000,
-                                1000000000000,
-                                10000000000000,
-                                100000000000000,
-                                1000000000000000,
-                                10000000000000000,
-                                100000000000000000,
-                                1000000000000000000,
-                                10000000000000000000u,
-                            };
-                        int tensindex = 19;
-
-                        if (value < 10000000000)
-                            tensindex = 11;
-
-                        int first = 1;
-                        while (tensindex >= 0)
-                        {
-                            int64_t m = ints[tensindex];
-                            if (value >= m)
-                            {
-                                first = 0;
-                                int digit = 1;
-#ifdef ARCH_HAS_DIVISION
-                                digit = value / m;
-                                value = value % m;
-#else
-                                value -= m;
-                                while (value >= m)
-                                    digit += 1, value -= m;
-#endif
-                                *p++ = '0' + digit;
-                            }
-                            else
-                            {
-                                if (!first)
-                                    *p++ = '0';
-                            }
-                            tensindex -= 1;
-                        }
-                        /* Special case 0 */
-                        if (p == buf)
-                            *p++ = '0';
-
-                        int size = (p - buf);
+                        int size = __cvt_uint64_decimal(value, p);
                         if (params.align_left)
                         {
                             n += pad_digits(out, &params, size, prefix);

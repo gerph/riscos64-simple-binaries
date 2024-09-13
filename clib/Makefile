@@ -179,6 +179,8 @@ OBJS = 	\
 		s_floor.o \
 		s_scalbn.o \
 		\
+		cvt_decimal.o \
+		\
 		swis-extras.o \
 		swis-kernel.o \
 		swis-module.o \

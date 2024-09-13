@@ -31,7 +31,7 @@ int os_inkey(int32_t value);
 void os_write0(const char *str);
 void os_writen(const char *str, int n);
 void os_newline(void);
-void os_generateerror(_kernel_oserror *err);
+void os_generateerror(_kernel_oserror *err) __attribute__ ((__noreturn__));
 int os_readescapestate(void);
 
 _kernel_oserror *os_heap(int heapop, void *heapbase, void *ptr, int size, void **newptr);
