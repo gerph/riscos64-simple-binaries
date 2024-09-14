@@ -116,7 +116,7 @@ endif
 CFLAGS += -O1
 
 # Options for this build
-CFLAGS += 
+CFLAGS += -DARCH_HAS_DIVISION
 
 # Assembler flags
 AFLAGS = -march=armv8-a
@@ -147,9 +147,12 @@ OBJS = 	\
 		io-printf.o \
 		io-sprintf.o \
 		io-vprintf.o \
+		kernel-backtrace.o \
 		kernel-escape.o \
 		kernel-state.o \
 		kernel-cli.o \
+		kernel-unwind-current.o \
+		kernel-unwind.o \
 		kernel.o \
 		longjmp.o \
 		main.o \
@@ -178,6 +181,9 @@ OBJS = 	\
 		s_sin.o \
 		s_floor.o \
 		s_scalbn.o \
+		\
+		cvt_decimal.o \
+		cvt_hex.o \
 		\
 		swis-extras.o \
 		swis-kernel.o \
