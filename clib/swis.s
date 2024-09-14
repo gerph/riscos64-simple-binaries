@@ -13,6 +13,7 @@
 
 __os_writec:
     STP     x29, x30, [sp, #-16]!
+    MOV     x29, sp
     MOV     x10, #0                     // OS_WriteC
     SVC     #0
     LDP     x29, x30, [sp], #16
@@ -20,6 +21,7 @@ __os_writec:
 
 __os_readc:
     STP     x29, x30, [sp, #-16]!
+    MOV     x29, sp
     MOV     x10, #4                     // OS_ReadC
     SVC     #0
     LDP     x29, x30, [sp], #16
@@ -27,6 +29,7 @@ __os_readc:
 
 __os_inkey:
     STP     x29, x30, [sp, #-16]!
+    MOV     x29, sp
     AND     x1, x0, #255
     LSR     x2, x0, #8
     MOV     x0, #0x81                   // INKEY
@@ -48,6 +51,7 @@ __os_inkey_escape:
 
 __os_write0:
     STP     x29, x30, [sp, #-16]!
+    MOV     x29, sp
     MOV     x10, #0x2                   // OS_Write0
     SVC     #0
     LDP     x29, x30, [sp], #16
@@ -55,6 +59,7 @@ __os_write0:
 
 __os_writen:
     STP     x29, x30, [sp, #-16]!
+    MOV     x29, sp
     MOV     x10, #0x46                  // OS_WriteN
     SVC     #0
     LDP     x29, x30, [sp], #16
@@ -62,6 +67,7 @@ __os_writen:
 
 __os_newline:
     STP     x29, x30, [sp, #-16]!
+    MOV     x29, sp
     MOV     x10, #0x3                   // OS_NewLine
     SVC     #0
     LDP     x29, x30, [sp], #16
@@ -69,6 +75,7 @@ __os_newline:
 
 __os_readescapestate:
     STP     x29, x30, [sp, #-16]!
+    MOV     x29, sp
     MOV     x10, #0x2C                  // OS_ReadEscapeState
     SVC     #0
 // We avoid flag returns from SWIs on RISC OS 64, so this returns the state in x0
@@ -77,6 +84,7 @@ __os_readescapestate:
 
 __os_generateerror:
     STP     x29, x30, [sp, #-16]!
+    MOV     x29, sp
     MOV     x10, #0x2B                  // OS_GenerateError
     SVC     #0
     LDP     x29, x30, [sp], #16

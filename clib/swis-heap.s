@@ -11,6 +11,7 @@
 // <=   R0 = pointer to error, or NULL if ok
 __os_heap:
     STP     x29, x30, [sp, #-16]!
+    MOV     x29, sp
     MOV     x10, #0x1D                  // OS_Heap
     MOVK    x10, #0x2, LSL 16           // X variant
     SVC     #0

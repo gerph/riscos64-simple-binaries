@@ -10,6 +10,7 @@
 // <=   R0 = pointer to error, or NULL if ok
 __os_module:
     STP     x29, x30, [sp, #-16]!
+    MOV     x29, sp
     MOV     x4, x3
     MOV     x3, x2
     MOV     x2, x1
