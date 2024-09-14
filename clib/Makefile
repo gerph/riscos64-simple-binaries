@@ -167,6 +167,7 @@ OBJS = 	\
 		string.o \
 		strtod.o \
 		strtol.o \
+		strtoul.o \
 		time.o \
 		sysvars.o \
 		sysvars-kernel.o \
