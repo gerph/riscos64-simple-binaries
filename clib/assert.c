@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <assert.h>
 #include "kernel.h"
 #include "swis.h"
@@ -9,6 +10,7 @@ void __attribute__ ((__noreturn__))
                     unsigned int __line, const char *__function)
 {
     char line[__CVT_DECIMAL_SIZE];
+
     static _kernel_oserror err = {0, "Assertion failed"};
     os_write0("Assertion failed: ");
     os_write0(__assertion);
@@ -25,6 +27,8 @@ void __attribute__ ((__noreturn__))
     __cvt_uint64_decimal(__line, line);
     os_write0(line);
     os_newline();
+
+    _kernel_backtrace();
 
     os_generateerror(&err);
 }
