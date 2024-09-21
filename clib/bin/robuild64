@@ -20,6 +20,9 @@ ROSYMBOLS=/ro64/clib/bin/riscos_symbols.py
 # Location of the C library
 CLIB64=${CLIB64:-$(dirname $0)/..}
 
+# How many parent directories we should use in our mounted directory
+RISCOS64_RELDIRS=${RISCOS64_RELDIRS:-0}
+
 function canonicalise() {
     local f=$1
     local dir
@@ -50,6 +53,7 @@ function riscos_cc() {
     local elf
     local function_entry_patchable
     local extra_flags=()
+    local cmds=()
 
     # Default output name
     default_aif='!RunImage'
@@ -80,7 +84,6 @@ function riscos_cc() {
 
     # Accumulate some args
     compile_only=false
-    linker=aif.lnk
     output=
     one_file=
     many_files=()
@@ -140,8 +143,11 @@ function riscos_cc() {
         #args+=(\&\& "$ROSYMBOLS" "${target}.map" "${output}")
     fi
 
-    echo "$CC" "${extra_flags[@]}" "${args[@]}" \
-         "&&" "$(riscos_link "${ofile}" -Map "${target}.map" '-o' "$output")"
+    cmds=("$CC" "${extra_flags[@]}" "${args[@]}")
+    if ! $compile_only ; then
+        cmds+=("&&" "$(riscos_link "${ofile}" -Map "${target}.map" '-o' "$output")")
+    fi
+    echo "${cmds[*]}"
 }
 
 
@@ -281,10 +287,8 @@ function riscos_link() {
         if [[ "$nextarg" != '' ]] ; then
             if [[ "$nextarg" = 'output' ]] ; then
                 output=$arg
-                continue
             elif [[ "$nextarg" = 'script' ]] ; then
                 linker_script=$arg
-                continue
             fi
             nextarg=''
 
@@ -306,18 +310,16 @@ function riscos_link() {
         elif [[ "$arg" == '-o' ]] ; then
             # Output isn't added to the linker right now.
             nextarg=output
-            continue
 
         elif [[ "$arg" == '-T' ]] ; then
             nextarg=script
-            continue
 
         elif [[ "$arg" =~ ^-l(.*)$ ]] ; then
             lib=${BASH_REMATCH[1]}
             # Library specified, so we need to resolve it.
             arg=/ro64/clib/lib${lib}.a
 
-        elif [[ "$arg" =~ /?([^/]*)\.[cs]$ ]] ; then
+        elif [[ "$arg" =~ /?([^/]*)\.[oa]$ ]] ; then
             if [[ "$one_file" == '' ]] ; then
                 one_file="${BASH_REMATCH[1]}"
             else
@@ -532,6 +534,19 @@ else
         chmod +x "$crosstool"
     fi
     #echo "Running crosstool for $cmd..."
-    "$crosstool" --args "-v ${CLIB64}:/ro64/clib -v ${CLIB64}/linker:/ro64/linker" \
-         -- bash -c "${args[*]}"
+    ct_args=(-v "${CLIB64}:/ro64/clib")
+    ct_args+=(-v "${CLIB64}/linker:/ro64/linker")
+    prefix_cmd=
+    if [[ $RISCOS64_RELDIRS != 0 ]] ; then
+        here=$PWD
+        reldir=
+        for i in $(seq $RISCOS64_RELDIRS) ; do
+            cd ..
+            reldir="/$(basename "$here")$reldir"
+            here="$(dirname "$here")"
+        done
+        prefix_cmd="cd '${reldir:1:${#reldir}}' && "
+    fi
+    "$crosstool" --args "${ct_args[*]}" \
+         -- bash -c "$prefix_cmd${args[*]}"
 fi
