@@ -12,6 +12,11 @@ typedef struct _kernel_swi_regs {
     int32_t r[10];
 } _kernel_swi_regs;
 
+typedef struct {
+   int32_t load, exec;       /* load, exec addresses */
+   int32_t start, end;       /* start address/length, end address/attributes */
+} _kernel_osfile_block;
+
 _kernel_oserror *_kernel_swi(int swinum, _kernel_swi_regs *in, _kernel_swi_regs *out);
 
 int _kernel_oscli(const char *cli);
@@ -21,6 +26,8 @@ int _kernel_escape_seen(void);
 
 _kernel_oserror *_kernel_setenv(const char *var, const char *val);
 _kernel_oserror *_kernel_getenv(const char *var, char *buf, unsigned size);
+
+int _kernel_osfile(int op, const char *name, _kernel_osfile_block *inout);
 
 
 /*************************************************** Gerph *********

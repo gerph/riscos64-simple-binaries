@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #include "heap/init.h"
+#include "time-clock.h"
 #include "swis_os.h"
 
 /* Define this to put the arguments on the stack, rather then in the heap */
@@ -59,7 +60,7 @@ int __main(const char *cli,
         __main_fail("Not enough memory for heap");
     }
     __heap_init(append, (void*)stack_limit);
-
+    __clock_init();
 
     /**** Build argv ****/
 

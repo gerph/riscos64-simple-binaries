@@ -18,6 +18,10 @@
 #define os_module __os_module
 #define os_heap __os_heap
 #define os_byte_out1 __os_byte_out1
+#define os_file2 __os_file2
+#define os_file3 __os_file3
+#define os_fscontrol2 __os_fscontrol2
+#define os_fscontrol3 __os_fscontrol3
 
 
 
@@ -33,6 +37,10 @@ void os_writen(const char *str, int n);
 void os_newline(void);
 void os_generateerror(_kernel_oserror *err) __attribute__ ((__noreturn__));
 int os_readescapestate(void);
+_kernel_oserror *os_file2(int op, const char *filename);
+_kernel_oserror *os_file3(int op, const char *filename, int arg1);
+_kernel_oserror *os_fscontrol2(int op, const char *filename);
+_kernel_oserror *os_fscontrol3(int op, const char *filename, const char *filename2);
 
 _kernel_oserror *os_heap(int heapop, void *heapbase, void *ptr, int size, void **newptr);
 _kernel_oserror *os_module(int moduleop, void *ptr, int size, void **newptr);

@@ -132,7 +132,10 @@ OBJCOPY = aarch64-unknown-linux-gnu-objcopy
 
 OBJS = 	\
 		assert.o \
+		abort.o \
+		\
 		ctypes.o \
+		ctypes_case.o \
 		errno.o \
 		\
 		heap/accumulator.o \
@@ -149,6 +152,11 @@ OBJS = 	\
 		io-printf.o \
 		io-sprintf.o \
 		io-vprintf.o \
+		\
+		fs-remove.o \
+		fs-rename.o \
+		fs-tmpnam.o \
+		\
 		kernel-backtrace.o \
 		kernel-escape.o \
 		kernel-state.o \
@@ -167,10 +175,13 @@ OBJS = 	\
 		string-strcpy.o \
 		string-strlen.o \
 		string.o \
+		\
+		atoi.o \
 		strtod.o \
 		strtol.o \
 		strtoul.o \
-		time.o \
+		\
+		time-clock.o \
 		sysvars.o \
 		sysvars-kernel.o \
 		sysvars-init.o \
