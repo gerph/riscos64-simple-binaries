@@ -182,6 +182,9 @@ OBJS = 	\
 		strtoul.o \
 		\
 		time-clock.o \
+		time-time.o \
+		time-gmtime.o \
+		\
 		sysvars.o \
 		sysvars-kernel.o \
 		sysvars-init.o \

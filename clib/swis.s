@@ -2,6 +2,7 @@
 
 .global __os_writec
 .global __os_readc
+.global __os_word
 .global __os_inkey
 .global __os_write0
 .global __os_writen
@@ -32,6 +33,18 @@ __os_readc:
     ORR     x10, x10, #0x20000
     SVC     #0
     CSINV   x0, x0, xzr, VS
+    LDP     x29, x30, [sp], #16
+    RET
+
+__os_word:
+    STP     x29, x30, [sp, #-16]!
+    MOV     x29, sp
+    STRB    w1, [x2]
+    MOV     x1, x2
+    MOV     x10, #7                     // OS_Word
+    ORR     x10, x10, #0x20000
+    SVC     #0
+    CSEL    x0, x0, xzr, VS
     LDP     x29, x30, [sp], #16
     RET
 
