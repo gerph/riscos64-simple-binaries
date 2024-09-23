@@ -287,8 +287,12 @@ function riscos_link() {
         if [[ "$nextarg" != '' ]] ; then
             if [[ "$nextarg" = 'output' ]] ; then
                 output=$arg
+                nextarg=''
+                continue
             elif [[ "$nextarg" = 'script' ]] ; then
                 linker_script=$arg
+                nextarg=''
+                continue
             fi
             nextarg=''
 
@@ -310,6 +314,7 @@ function riscos_link() {
         elif [[ "$arg" == '-o' ]] ; then
             # Output isn't added to the linker right now.
             nextarg=output
+            continue
 
         elif [[ "$arg" == '-T' ]] ; then
             nextarg=script
