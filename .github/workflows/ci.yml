@@ -112,5 +112,5 @@ jobs:
         with:
           prerelease: false
           draft: true
-          artifacts: "${{ needs.build.outputs.leafname_bin }} ${{ needs.build.outputs.leafname_lib }}"
+          artifacts: "${{ needs.build.outputs.leafname_bin }},${{ needs.build.outputs.leafname_lib }}"
           artifactContentType: application/zip
