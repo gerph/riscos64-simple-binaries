@@ -17,6 +17,8 @@ AR=aarch64-unknown-linux-gnu-ar
 OBJCOPY=aarch64-unknown-linux-gnu-objcopy
 ROSYMBOLS=/ro64/clib/bin/riscos_symbols.py
 
+RO64EXPORT=${RO64EXPORT:-/ro64/clib}
+
 # Location of the C library
 CLIB64=${CLIB64:-$(dirname $0)/..}
 
@@ -136,17 +138,17 @@ function riscos_cc() {
                 target="__many__"
                 ofile="$target.o"
             fi
+            if [[ "$target" != '' ]] ; then
+                args+=(-c -o "${ofile}")
+            fi
         fi
-        args+=(-c -o "${ofile}")
-        #args+=(\&\& "$LD" -T /ro64/linker/${linker} "${ofile}" /ro64/clib/libcrt.a -Map "${target}.map" -e _aif64_entry -o "${elf}")
-        #args+=(\&\& "$OBJCOPY" -O binary -j .text "${elf}" "${output}")
-        #args+=(\&\& "$ROSYMBOLS" "${target}.map" "${output}")
     fi
 
     cmds=("$CC" "${extra_flags[@]}" "${args[@]}")
-    if ! $compile_only ; then
+    if ! $compile_only && [[ "$one_file" != '' ]] ; then
         cmds+=("&&" "$(riscos_link "${ofile}" -Map "${target}.map" '-o' "$output")")
     fi
+
     echo "${cmds[*]}"
 }
 
@@ -163,7 +165,7 @@ function riscos_as() {
     extra_flags+=(-defsym __riscos=1 -defsym __riscos64=1)
 
     # Add the exports directory to those things we'll build with
-    extra_flags+=(-I/ro64/clib/asm)
+    extra_flags+=("-I${RO64EXPORT}/asm")
 
     # Define the architecture
     extra_flags+=(-march=armv8-a)
@@ -174,7 +176,9 @@ function riscos_as() {
         args+=("$arg")
     done
 
-    echo "$AS" "${extra_flags[@]}"
+    cmds=("$AS" "${extra_flags[@]}" "${args[@]}")
+
+    echo "${cmds[*]}"
 }
 
 
@@ -264,7 +268,9 @@ EOM
         args+=(-s)
     fi
 
-    echo "$AR" "${args[@]}" "$lib" "${many_files[@]}"
+    cmds=("$AR" "${args[@]}" "$lib" "${many_files[@]}")
+
+    echo "${cmds[*]}"
 }
 
 
@@ -322,7 +328,7 @@ function riscos_link() {
         elif [[ "$arg" =~ ^-l(.*)$ ]] ; then
             lib=${BASH_REMATCH[1]}
             # Library specified, so we need to resolve it.
-            arg=/ro64/clib/lib${lib}.a
+            arg=${RO64EXPORT}/lib${lib}.a
 
         elif [[ "$arg" =~ /?([^/]*)\.[oa]$ ]] ; then
             if [[ "$one_file" == '' ]] ; then
@@ -354,17 +360,17 @@ function riscos_link() {
     fi
 
     if [[ "$type" = 'ff8' ]] ; then
-        linker_script=/ro64/clib/linker/aif.lnk
+        linker_script=${RO64EXPORT}/linker/aif.lnk
         entry=_aif64_entry
     elif [[ "$type" = 'ffa' ]] ; then
-        linker_script=/ro64/clib/linker/rmf.lnk
+        linker_script=${RO64EXPORT}/linker/rmf.lnk
         entry=_rmf64_header
     elif [[ "$type" = 'ffc' ]] ; then
-        linker_script=/ro64/clib/linker/util.lnk
+        linker_script=${RO64EXPORT}/linker/utility.lnk
         entry=_util64_header
     fi
 
-    args+=(/ro64/clib/libcrt.a)
+    args+=(${RO64EXPORT}/libcrt.a)
 
     if [[ "$linker_script" != '' ]] ; then
         args+=("-T" "$linker_script")
@@ -376,7 +382,7 @@ function riscos_link() {
 
     if [[ "$type" == 'e1f' ]] ; then
         # If they requested ELF then no further processing is done
-        echo "$LD" "${args[@]}" "-o" "$output"
+        cmds=("$LD" "${args[@]}" "-o" "$output")
     else
         if [[ "$output" =~ ^(.*),([0-9a-f][0-9a-f][0-9a-f])$ ]] ; then
             output_elf="${BASH_REMATCH[1]}.elf"
@@ -385,10 +391,12 @@ function riscos_link() {
             output_elf="${output}.elf"
             output_map="${output}.map"
         fi
-        echo "$LD" "${args[@]}" "-o" "${output_elf}" \
-             "&&" "$OBJCOPY" "-O" "binary" "-j" ".text" "${output_elf}" "${output}" \
-             "&&" "$ROSYMBOLS" "${output_map}" "${output}"
+        cmds=("$LD" "${args[@]}" "-o" "${output_elf}" \
+              "&&" "$OBJCOPY" "-O" "binary" "-j" ".text" "${output_elf}" "${output}" \
+              "&&" "$ROSYMBOLS" "${output_map}" "${output}")
     fi
+
+    echo "${cmds[*]}"
 }
 
 function install() {
