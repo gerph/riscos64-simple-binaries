@@ -4,7 +4,7 @@
 
 #include "main-exit.h"
 #include "heap/init.h"
-#include "io-file-init.h"
+#include "io/io-file-init.h"
 #include "sysvars-init.h"
 #include "swis_os.h"
 

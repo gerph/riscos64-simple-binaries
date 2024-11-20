@@ -76,7 +76,7 @@ dockcross-linux-arm64:
 
 clean:
 	-rm -rf *.o *.a *.bin *,ff8 *.map riscos_headers/ export/
-	-rm -rf heap/*.o
+	-rm -rf heap/*.o io/*.o
 
 ifeq (${CROSS_ROOT},)
 # If we're outside the docker container, re-run ourselves inside the container
@@ -107,7 +107,7 @@ CFLAGS += -nostdlib -ffreestanding -march=armv8-a
 #CFLAGS += -nostdlib -ffreestanding -march=armv8-a+nofp
 
 # Add the exports directory to those things we'll build with
-CFLAGS += -Iriscos_headers/C/ -Iriscos_headers/Lib/
+CFLAGS += -Iriscos_headers/C/ -Iriscos_headers/Lib/ -I.
 
 # Options to allow function signatures to appear RISC OS-like
 ifeq (${USE_FUNC_SIGNATURE},1)
@@ -144,14 +144,14 @@ OBJS = 	\
 		heap/o1heap-shim.o \
 		heap/init.o \
 		\
-		io-constants.o \
-		io-console.o \
-		io-file-init.o \
-		io-file.o \
-		io-fprintf.o \
-		io-printf.o \
-		io-sprintf.o \
-		io-vprintf.o \
+		io/io-constants.o \
+		io/io-console.o \
+		io/io-file-init.o \
+		io/io-file.o \
+		io/io-fprintf.o \
+		io/io-printf.o \
+		io/io-sprintf.o \
+		io/io-vprintf.o \
 		\
 		fs-remove.o \
 		fs-rename.o \
