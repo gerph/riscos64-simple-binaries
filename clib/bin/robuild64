@@ -1,0 +1,565 @@
+#!/bin/bash
+##
+# Invoke the toolchain for RISC OS 64 tools.
+#
+
+# Errors are fatal
+set -e
+
+# Where we'll store things that we generate
+cache=${XDG_CACHE_HOME:-$HOME/.cache}/riscos-build64
+
+# Tools
+CC=aarch64-unknown-linux-gnu-gcc
+AS=aarch64-unknown-linux-gnu-as
+LD=aarch64-unknown-linux-gnu-ld
+AR=aarch64-unknown-linux-gnu-ar
+OBJCOPY=aarch64-unknown-linux-gnu-objcopy
+ROSYMBOLS=/ro64/clib/bin/riscos_symbols.py
+
+RO64EXPORT=${RO64EXPORT:-/ro64/clib}
+
+# Location of the C library
+CLIB64=${CLIB64:-$(dirname $0)/..}
+
+# How many parent directories we should use in our mounted directory
+RISCOS64_RELDIRS=${RISCOS64_RELDIRS:-0}
+
+function canonicalise() {
+    local f=$1
+    local dir
+    dir="$(cd "$(dirname "$f")" > /dev/null && pwd -P)"
+    if [[ "$dir" == '/' ]] ; then
+        echo "/$(basename "$f")"
+    else
+        echo "$dir/$(basename "$f")"
+    fi
+}
+
+CLIB64=$(canonicalise "$CLIB64")
+
+
+function riscos_cc() {
+    local inargs=("$@")
+    local args=()
+    local arg
+    local output
+    local nextarg
+    local lib
+    local type=ff8
+    local name
+    local one_file
+    local many_files
+    local linker_script
+    local entry
+    local elf
+    local function_entry_patchable
+    local extra_flags=()
+    local cmds=()
+
+    # Default output name
+    default_aif='!RunImage'
+
+    # How large our patch region is (or empty to not add)
+    function_entry_patchable=8
+
+    extra_flags=()
+
+    # Remove the flags that might make code think it's compiling for linux system.
+    extra_flags+=(-U__linux -U__linux__ -U__unix__ -U__unix -Ulinux -Uunix -U__gnu_linux__)
+
+    # Add the definitions to indicate that we're compiling for RISC OS
+    extra_flags+=(-D__riscos -D__riscos64)
+
+    # Allow us to build without assuming the standard library is present
+    extra_flags+=(-nostdlib -ffreestanding -march=armv8-a)
+
+    # Add the exports directory to those things we'll build with
+    extra_flags+=(-I/ro64/clib/C \
+                  -I/ro64/clib/Lib/ \
+                  -I/ro64/clib/)
+
+    # Options to allow function signatures to appear RISC OS-like
+    if [[ "$function_entry_patchable" != '' ]] ; then
+        extra_flags+=(-fpatchable-function-entry=$function_entry_patchable,$function_entry_patchable)
+    fi
+
+    # Accumulate some args
+    compile_only=false
+    output=
+    one_file=
+    many_files=()
+    args=()
+    for arg in "${inargs[@]}" ; do
+        if [[ "$nextarg" != '' ]] ; then
+            if [[ "$nextarg" = 'output' ]] ; then
+                output=$arg
+            fi
+            nextarg=''
+
+        elif [[ "$arg" == '-c' ]] ; then
+            compile_only=true
+
+        elif [[ "$arg" == '-o' ]] ; then
+            nextarg=output
+
+        elif [[ "$arg" =~ /?([^/]*)\.[cs]$ ]] ; then
+            if [[ "$one_file" == '' ]] ; then
+                one_file="${BASH_REMATCH[1]}"
+            else
+                one_file='*'
+            fi
+            many_files+=("$arg")
+        fi
+        args+=("$arg")
+    done
+
+    if ! $compile_only ; then
+        # They wanted to build a target binary
+        if [[ "$one_file" != '*' ]] ; then
+            if [[ "$output" = '' ]] ; then
+                output="${one_file},ff8"
+                target="${one_file}"
+                ofile="${one_file}.o"
+            fi
+        else
+            if [[ "$output" = '' ]] ; then
+                output="${default_aif},ff8"
+                target="${default_aif}"
+                ofile="${default_aif}.o"
+            fi
+        fi
+        elf="${target}.elf"
+        if [[ "$output" != '' ]] ; then
+            if [[ "$output" =~ /?([^/]*),[0-9a-f][0-9a-f][0-9a-f]$ ]] ; then
+                target="${BASH_REMATCH[1]}"
+                ofile="$target.o"
+            else
+                target="__many__"
+                ofile="$target.o"
+            fi
+            if [[ "$target" != '' ]] ; then
+                args+=(-c -o "${ofile}")
+            fi
+        fi
+    fi
+
+    cmds=("$CC" "${extra_flags[@]}" "${args[@]}")
+    if ! $compile_only && [[ "$one_file" != '' ]] ; then
+        cmds+=("&&" "$(riscos_link "${ofile}" -Map "${target}.map" '-o' "$output")")
+    fi
+
+    echo "${cmds[*]}"
+}
+
+
+function riscos_as() {
+    local inargs=("$@")
+    local args=()
+    local arg
+    local extra_flags=()
+
+    extra_flags=()
+
+    # Add the definitions to indicate that we're compiling for RISC OS
+    extra_flags+=(-defsym __riscos=1 -defsym __riscos64=1)
+
+    # Add the exports directory to those things we'll build with
+    extra_flags+=("-I${RO64EXPORT}/asm")
+
+    # Define the architecture
+    extra_flags+=(-march=armv8-a)
+
+    args=()
+    for arg in "${inargs[@]}" ; do
+        # FIXME: We don't actually have any special flags yet.
+        args+=("$arg")
+    done
+
+    cmds=("$AS" "${extra_flags[@]}" "${args[@]}")
+
+    echo "${cmds[*]}"
+}
+
+
+function riscos_libfile() {
+    local inargs=("$@")
+    local args=()
+    local arg
+    local output
+    local nextarg
+    local lib
+    local create=false
+    local replace=false
+    local delete=false
+    local extract=false
+    local many_files=()
+
+    for arg in "${inargs[@]}" ; do
+        if [[ "$nextarg" != '' ]] ; then
+            # No nextarg processing
+            nextarg=''
+
+        elif [[ "$arg" == '-h' ]] ; then
+            cat <<EOM
+Create or manipulate a library for RISC OS 64.
+Syntax: $0 <options> <library> <file-list>*
+    -c      Create a new library containing files in <file-list>.
+    -i      Insert files in <file-list>, replace existing members of the same name.
+    -d      Delete the members in <member_list>.
+    -e      Extract members in <member_list> placing in files of the same name.
+    -o      Add an external symbol table to an object library. (N/I)
+    -l      List library, may be specified with any other option. (N/I)
+    -s      List symbol table, may be specified with any other option. (N/I)
+    -v file Take additional arguments from via file. (N/I)
+EOM
+            exit 0
+
+        elif [[ "$arg" == '-c' ]] ; then
+            create=true
+            continue
+
+        elif [[ "$arg" == '-i' ]] ; then
+            create=false
+            replace=true
+            continue
+
+        elif [[ "$arg" == '-d' ]] ; then
+            delete=true
+            continue
+
+        elif [[ "$arg" == '-e' ]] ; then
+            extract=true
+            continue
+
+        elif [[ "${arg:0:1}" == '-' ]] ; then
+            echo "Unrecognised option: $arg" >&2
+            exit 1
+
+        else
+            if [[ "$lib" = '' ]] ; then
+                lib=$arg
+                continue
+            fi
+
+            many_files+=("$arg")
+        fi
+    done
+
+    if [[ "$lib" = '' ]] ; then
+        echo "Library name is required" >&2
+        exit 1
+    fi
+
+    if $create ; then
+        rm -f "$lib"
+        args+=(-rc)
+    fi
+    if $replace ; then
+        args+=(-r)
+    fi
+    if $delete ; then
+        args+=(-d)
+    fi
+    if $extract ; then
+        args+=(-x)
+    else
+        # If not extracting, write object file index to be faster.
+        args+=(-s)
+    fi
+
+    cmds=("$AR" "${args[@]}" "$lib" "${many_files[@]}")
+
+    echo "${cmds[*]}"
+}
+
+
+function riscos_link() {
+    local inargs=("$@")
+    local args=()
+    local arg
+    local output
+    local nextarg
+    local lib
+    local type=ff8
+    local name
+    local one_file
+    local linker_script
+    local entry
+    local elf
+    local many_files=()
+
+    for arg in "${inargs[@]}" ; do
+        if [[ "$nextarg" != '' ]] ; then
+            if [[ "$nextarg" = 'output' ]] ; then
+                output=$arg
+                nextarg=''
+                continue
+            elif [[ "$nextarg" = 'script' ]] ; then
+                linker_script=$arg
+                nextarg=''
+                continue
+            fi
+            nextarg=''
+
+        elif [[ "$arg" == '-rmf' ]] ; then
+            # RISC OS specific option
+            type=ffa
+            continue
+
+        elif [[ "$arg" == '-aif' ]] ; then
+            # RISC OS specific option
+            type=ff8
+            continue
+
+        elif [[ "$arg" == '-util' ]] ; then
+            # RISC OS specific option
+            type=ffc
+            continue
+
+        elif [[ "$arg" == '-o' ]] ; then
+            # Output isn't added to the linker right now.
+            nextarg=output
+            continue
+
+        elif [[ "$arg" == '-T' ]] ; then
+            nextarg=script
+
+        elif [[ "$arg" =~ ^-l(.*)$ ]] ; then
+            lib=${BASH_REMATCH[1]}
+            # Library specified, so we need to resolve it.
+            arg=${RO64EXPORT}/lib${lib}.a
+
+        elif [[ "$arg" =~ /?([^/]*)\.[oa]$ ]] ; then
+            if [[ "$one_file" == '' ]] ; then
+                one_file="${BASH_REMATCH[1]}"
+            else
+                one_file='*'
+            fi
+            many_files+=("$arg")
+        fi
+        args+=("$arg")
+    done
+
+    if [[ "$output" == "" ]] ; then
+        if [[ "$one_file" != '*' ]] ; then
+            output="$one_file,$type"
+        elif [[ "$type" = 'ff8' ]] ; then
+            output="!RunImage,ff8"
+        elif [[ "$type" = 'ffa' ]] ; then
+            output="Module,ffa"
+        elif [[ "$type" = 'ffc' ]] ; then
+            output="Utility,ffc"
+        else
+            output="RISCOS,$type"
+        fi
+    fi
+
+    if [[ "$output" =~ ,([0-9a-f][0-9a-f][0-9a-f])$ ]] ; then
+        type=${BASH_REMATCH[1]}
+    fi
+
+    if [[ "$type" = 'ff8' ]] ; then
+        linker_script=${RO64EXPORT}/linker/aif.lnk
+        entry=_aif64_entry
+    elif [[ "$type" = 'ffa' ]] ; then
+        linker_script=${RO64EXPORT}/linker/rmf.lnk
+        entry=_rmf64_header
+    elif [[ "$type" = 'ffc' ]] ; then
+        linker_script=${RO64EXPORT}/linker/utility.lnk
+        entry=_util64_header
+    fi
+
+    args+=(${RO64EXPORT}/libcrt.a)
+
+    if [[ "$linker_script" != '' ]] ; then
+        args+=("-T" "$linker_script")
+    fi
+
+    if [[ "$entry" != '' ]] ; then
+        args+=('-e' "$entry")
+    fi
+
+    if [[ "$type" == 'e1f' ]] ; then
+        # If they requested ELF then no further processing is done
+        cmds=("$LD" "${args[@]}" "-o" "$output")
+    else
+        if [[ "$output" =~ ^(.*),([0-9a-f][0-9a-f][0-9a-f])$ ]] ; then
+            output_elf="${BASH_REMATCH[1]}.elf"
+            output_map="${BASH_REMATCH[1]}.map"
+        else
+            output_elf="${output}.elf"
+            output_map="${output}.map"
+        fi
+        cmds=("$LD" "${args[@]}" "-o" "${output_elf}" \
+              "&&" "$OBJCOPY" "-O" "binary" "-j" ".text" "${output_elf}" "${output}" \
+              "&&" "$ROSYMBOLS" "${output_map}" "${output}")
+    fi
+
+    echo "${cmds[*]}"
+}
+
+function install() {
+    # They want to install the tools into the host environment, so that they can
+    # run through the docker container.
+    local args=("$@")
+
+    TOOLS=(riscos64-cc \
+           riscos64-link \
+           riscos64-as \
+           riscos64-ar \
+           riscos64-libfile)
+
+    TARGET="${args[0]}"
+    in_container=false
+
+    if [[ -f /dockcross ]] ; then
+        in_container=true
+        TARGET=/riscos-build
+    fi
+
+    if [[ "$TARGET" = '' ]] ; then
+        # Try to install into a user's 'bin' directory, if we can.
+        if [[ -d "$HOME/bin" ]] ; then
+            TARGET="$HOME/bin"
+        elif [[ -w "/usr/local/bin" ]] ; then
+            TARGET="/usr/local/bin"
+        fi
+    fi
+
+    if [[ "$TARGET" = '' || "${TARGET:0:2}" = '-h' ]] ; then
+        echo "Syntax: $0 install" 2>&1
+        exit 1
+    fi
+
+    if [[ ! -d "$TARGET" ]] ; then
+        mkdir -p "$TARGET"
+    fi
+
+    # Make target into an absolute path
+    TARGET="$(canonicalise "$TARGET")"
+
+    if $in_container ; then
+        echo "ERROR: Running from within the container is not supported"
+    else
+        echo "Installing into directory '$TARGET'"
+    fi
+
+    # Remove any existing shell tool
+    rm -f "${TARGET}/riscos64-shell"
+
+    # Create a marker file for every tool that exists within the container.
+    for tool in "${TOOLS[@]}" ; do
+        rm -f "$TARGET/$tool"
+        ln -s "$TARGET/riscos64-shell" "$TARGET/$tool"
+    done
+
+    # We implicitly create the `riscos64-shell` command, which is this script.
+    cat < "$0" > "${TARGET}/riscos64-shell"
+
+    # Symlink each of our marker files to the riscos-shell script, which will run
+    # them with the same configuration as this.
+    for toolfile in "${TOOLS[@]}" ; do
+        echo "  Create tool $toolfile"
+        ln -fs "riscos64-shell" "$TARGET/$toolfile"
+        chmod +x "$toolfile"
+    done
+}
+
+
+#set -x
+
+TOOL=$(basename "$0")
+
+cmd=
+if [[ "$TOOL" != 'robuild64' ]] ; then
+    # If the tool is one of our promoted tools, then the tool name is implicit.
+    cmd="$TOOL"
+    args=()
+    # And the shell can be created too.
+    if [[ "$cmd" == 'riscos64-shell' ]] ; then
+        cmd=(bash)
+    fi
+    args+=("$@")
+else
+    if [[ "$*" == ''  || "$*:0:2" = '-h' ]] ; then
+        echo "Syntax: ${TOOL} <commands>"
+        exit 1
+    fi
+
+    if [[ "$1" == '--shell' || "$1" == 'shell' ]] ; then
+        cmd=(bash)
+        shift
+    else
+        cmd=("$1")
+        shift
+        args=("$@")
+    fi
+fi
+
+case "$cmd" in
+
+    install)
+        install "${args[@]}"
+        exit
+        ;;
+
+    riscos64-cc|cc)
+        args=($(riscos_cc "${args[@]}"))
+        ;;
+
+    riscos64-as|as)
+        args=($(riscos_as "${args[@]}"))
+        ;;
+
+    riscos64-link|link)
+        args=($(riscos_link "${args[@]}"))
+        ;;
+
+    riscos64-libfile|libfile)
+        args=($(riscos_libfile "${args[@]}"))
+        ;;
+
+    bash)
+        if [[ "${#args}" != 0 ]] ; then
+            args=(-c "${args[@]}")
+        fi
+        if [[ -t 0 ]] ; then
+            # If this is a TTY, start as a login shell, interactively
+            args=(-l -i "${args[@]}")
+        fi
+        args=(bash "${args[@]}")
+        ;;
+
+    *)
+        echo "ERROR: Unrecognised command '$cmd'" >&2
+        exit 1
+esac
+
+if [[ "$CT_VERSION" != '' ]] ; then
+    # We are already inside the crosstool environment
+    bash -c "${args[*]}"
+else
+    mkdir -p "${cache}"
+    crosstool="$cache/dockcross-linux-arm64"
+    if [[ ! -x "$crosstool" || ! -s "$crosstool" ]] ; then
+        docker run --rm dockcross/linux-arm64:latest > "$crosstool"
+        chmod +x "$crosstool"
+    fi
+    #echo "Running crosstool for $cmd..."
+    ct_args=(-v "${CLIB64}:/ro64/clib")
+    ct_args+=(-v "${CLIB64}/linker:/ro64/linker")
+    prefix_cmd=
+    if [[ $RISCOS64_RELDIRS != 0 ]] ; then
+        here=$PWD
+        reldir=
+        for i in $(seq $RISCOS64_RELDIRS) ; do
+            cd ..
+            reldir="/$(basename "$here")$reldir"
+            here="$(dirname "$here")"
+        done
+        prefix_cmd="cd '${reldir:1:${#reldir}}' && "
+    fi
+    "$crosstool" --args "${ct_args[*]}" \
+         -- bash -c "$prefix_cmd${args[*]}"
+fi

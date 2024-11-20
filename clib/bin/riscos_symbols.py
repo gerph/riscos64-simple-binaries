@@ -1,3 +1,4 @@
+#!/bin/env python
 """
 Poke RISC OS style function names into the binary.
 
