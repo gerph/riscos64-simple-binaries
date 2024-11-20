@@ -76,7 +76,9 @@ dockcross-linux-arm64:
 
 clean:
 	-rm -rf *.o *.a *.bin *,ff8 *.map riscos_headers/ export/
-	-rm -rf heap/*.o io/*.o
+	-rm -rf heap/*.o \
+			io/*.o \
+			fs/*.o
 
 ifeq (${CROSS_ROOT},)
 # If we're outside the docker container, re-run ourselves inside the container
@@ -153,9 +155,9 @@ OBJS = 	\
 		io/io-sprintf.o \
 		io/io-vprintf.o \
 		\
-		fs-remove.o \
-		fs-rename.o \
-		fs-tmpnam.o \
+		fs/fs-remove.o \
+		fs/fs-rename.o \
+		fs/fs-tmpnam.o \
 		\
 		kernel-backtrace.o \
 		kernel-escape.o \
