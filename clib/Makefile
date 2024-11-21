@@ -218,14 +218,14 @@ OBJS = 	\
 		\
 		version.o \
 		\
-		e_rem_pio2.o \
-		k_rem_pio2.o \
-		k_cos.o \
-		s_cos.o \
-		k_sin.o \
-		s_sin.o \
-		s_floor.o \
-		s_scalbn.o \
+		maths/e_rem_pio2.o \
+		maths/k_rem_pio2.o \
+		maths/k_cos.o \
+		maths/s_cos.o \
+		maths/k_sin.o \
+		maths/s_sin.o \
+		maths/s_floor.o \
+		maths/s_scalbn.o \
 		\
 		swis-extras.o \
 		swis-kernel.o \
