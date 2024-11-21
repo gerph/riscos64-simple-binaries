@@ -82,7 +82,8 @@ clean:
 			io/*.o \
 			fs/*.o \
 			kernel/*.o \
-			conversion/*.o
+			conversion/*.o \
+			string/*.o
 
 ifeq (${CROSS_ROOT},)
 # If we're outside the docker container, re-run ourselves inside the container
@@ -178,10 +179,22 @@ OBJS = 	\
 		malloc.o \
 		mem.o \
 		qsort.o \
-		strdup.o \
-		string-strcpy.o \
-		string-strlen.o \
-		string.o \
+		\
+		string/memchr.o \
+		string/memcmp.o \
+		string/strcat.o \
+		string/strchr.o \
+		string/strcmp.o \
+		string/strcpy.o \
+		string/strcspn.o \
+		string/strdup.o \
+		string/strlen.o \
+		string/strncat.o \
+		string/strncmp.o \
+		string/strncpy.o \
+		string/strrchr.o \
+		string/strspn.o \
+		string/strstr.o \
 		\
 		conversion/atoi.o \
 		conversion/strtod.o \
