@@ -81,7 +81,8 @@ clean:
 	-rm -rf heap/*.o \
 			io/*.o \
 			fs/*.o \
-			kernel/*.o
+			kernel/*.o \
+			conversion/*.o
 
 ifeq (${CROSS_ROOT},)
 # If we're outside the docker container, re-run ourselves inside the container
@@ -182,10 +183,13 @@ OBJS = 	\
 		string-strlen.o \
 		string.o \
 		\
-		atoi.o \
-		strtod.o \
-		strtol.o \
-		strtoul.o \
+		conversion/atoi.o \
+		conversion/strtod.o \
+		conversion/strtol.o \
+		conversion/strtoul.o \
+		\
+		conversion/cvt_decimal.o \
+		conversion/cvt_hex.o \
 		\
 		time-clock.o \
 		time-time.o \
@@ -204,9 +208,6 @@ OBJS = 	\
 		s_sin.o \
 		s_floor.o \
 		s_scalbn.o \
-		\
-		cvt_decimal.o \
-		cvt_hex.o \
 		\
 		swis-extras.o \
 		swis-kernel.o \
