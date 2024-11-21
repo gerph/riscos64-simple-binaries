@@ -83,7 +83,8 @@ clean:
 			fs/*.o \
 			kernel/*.o \
 			conversion/*.o \
-			string/*.o
+			string/*.o \
+			time/*.o
 
 ifeq (${CROSS_ROOT},)
 # If we're outside the docker container, re-run ourselves inside the container
@@ -204,9 +205,9 @@ OBJS = 	\
 		conversion/cvt_decimal.o \
 		conversion/cvt_hex.o \
 		\
-		time-clock.o \
-		time-time.o \
-		time-gmtime.o \
+		time/time-clock.o \
+		time/time-time.o \
+		time/time-gmtime.o \
 		\
 		sysvars.o \
 		sysvars-kernel.o \
