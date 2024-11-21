@@ -47,6 +47,8 @@ export_headers: local_headers \
 
 riscos_headers/Lib/CLib/%.h: %.h | local_headers
 	cp $? $@
+riscos_headers/Lib/CLib/%.h: kernel/%.h | local_headers
+	cp $? $@
 riscos_headers/Lib/CLib/%.h: heap/%.h | local_headers
 	cp $? $@
 
@@ -76,7 +78,14 @@ dockcross-linux-arm64:
 
 clean:
 	-rm -rf *.o *.a *.bin *,ff8 *.map riscos_headers/ export/
-	-rm -rf heap/*.o
+	-rm -rf heap/*.o \
+			io/*.o \
+			fs/*.o \
+			kernel/*.o \
+			conversion/*.o \
+			string/*.o \
+			time/*.o \
+			sysvars/*.o
 
 ifeq (${CROSS_ROOT},)
 # If we're outside the docker container, re-run ourselves inside the container
@@ -107,7 +116,7 @@ CFLAGS += -nostdlib -ffreestanding -march=armv8-a
 #CFLAGS += -nostdlib -ffreestanding -march=armv8-a+nofp
 
 # Add the exports directory to those things we'll build with
-CFLAGS += -Iriscos_headers/C/ -Iriscos_headers/Lib/
+CFLAGS += -Iriscos_headers/C/ -Iriscos_headers/Lib/ -Iriscos_headers/Lib/CLib/ -I.
 
 # Options to allow function signatures to appear RISC OS-like
 ifeq (${USE_FUNC_SIGNATURE},1)
@@ -144,63 +153,79 @@ OBJS = 	\
 		heap/o1heap-shim.o \
 		heap/init.o \
 		\
-		io-constants.o \
-		io-console.o \
-		io-file-init.o \
-		io-file.o \
-		io-fprintf.o \
-		io-printf.o \
-		io-sprintf.o \
-		io-vprintf.o \
+		io/io-constants.o \
+		io/io-console.o \
+		io/io-file-init.o \
+		io/io-file.o \
+		io/io-fprintf.o \
+		io/io-printf.o \
+		io/io-sprintf.o \
+		io/io-vprintf.o \
 		\
-		fs-remove.o \
-		fs-rename.o \
-		fs-tmpnam.o \
+		fs/fs-remove.o \
+		fs/fs-rename.o \
+		fs/fs-tmpnam.o \
 		\
-		kernel-backtrace.o \
-		kernel-escape.o \
-		kernel-state.o \
-		kernel-cli.o \
-		kernel-unwind-current.o \
-		kernel-unwind.o \
-		kernel.o \
+		kernel/kernel-backtrace.o \
+		kernel/kernel-escape.o \
+		kernel/kernel-state.o \
+		kernel/kernel-cli.o \
+		kernel/kernel-unwind-current.o \
+		kernel/kernel-unwind.o \
+		kernel/kernel.o \
+		\
 		longjmp.o \
 		main.o \
 		main-exit.o \
 		module.o \
 		malloc.o \
-		mem.o \
 		qsort.o \
-		strdup.o \
-		string-strcpy.o \
-		string-strlen.o \
-		string.o \
 		\
-		atoi.o \
-		strtod.o \
-		strtol.o \
-		strtoul.o \
+		string/memchr.o \
+		string/memcmp.o \
+		string/memcpy.o \
+		string/memmove.o \
+		string/memset.o \
+		string/strcat.o \
+		string/strchr.o \
+		string/strcmp.o \
+		string/strcpy.o \
+		string/strcspn.o \
+		string/strdup.o \
+		string/strlen.o \
+		string/strncat.o \
+		string/strncmp.o \
+		string/strncpy.o \
+		string/strrchr.o \
+		string/strspn.o \
+		string/strstr.o \
 		\
-		time-clock.o \
-		time-time.o \
-		time-gmtime.o \
+		conversion/atoi.o \
+		conversion/strtod.o \
+		conversion/strtol.o \
+		conversion/strtoul.o \
 		\
-		sysvars.o \
-		sysvars-kernel.o \
-		sysvars-init.o \
+		conversion/cvt_decimal.o \
+		conversion/cvt_hex.o \
+		\
+		time/time-clock.o \
+		time/time-time.o \
+		time/time-gmtime.o \
+		\
+		sysvars/sysvars.o \
+		sysvars/sysvars-kernel.o \
+		sysvars/sysvars-init.o \
+		\
 		version.o \
 		\
-		e_rem_pio2.o \
-		k_rem_pio2.o \
-		k_cos.o \
-		s_cos.o \
-		k_sin.o \
-		s_sin.o \
-		s_floor.o \
-		s_scalbn.o \
-		\
-		cvt_decimal.o \
-		cvt_hex.o \
+		maths/e_rem_pio2.o \
+		maths/k_rem_pio2.o \
+		maths/k_cos.o \
+		maths/s_cos.o \
+		maths/k_sin.o \
+		maths/s_sin.o \
+		maths/s_floor.o \
+		maths/s_scalbn.o \
 		\
 		swis-extras.o \
 		swis-kernel.o \

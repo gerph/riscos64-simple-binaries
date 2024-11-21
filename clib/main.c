@@ -3,7 +3,7 @@
 #include <stdint.h>
 
 #include "heap/init.h"
-#include "time-clock.h"
+#include "time/time-clock.h"
 #include "swis_os.h"
 
 /* Define this to put the arguments on the stack, rather then in the heap */

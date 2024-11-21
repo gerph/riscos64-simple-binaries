@@ -6,7 +6,7 @@
  ******************************************************************/
 
 #include <stdlib.h>
-#include "../kernel.h"
+#include "kernel.h"
 #include "../swis_os.h"
 
 #include "internal.h"

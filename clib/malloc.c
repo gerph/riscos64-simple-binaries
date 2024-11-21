@@ -12,7 +12,7 @@
 
 #include "swis.h"
 #include "swis_os.h"
-#include "kernel-state.h"
+#include "kernel/kernel-state.h"
 
 #include "heap/init.h"
 #include "heap/internal.h"
