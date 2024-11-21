@@ -179,11 +179,13 @@ OBJS = 	\
 		main-exit.o \
 		module.o \
 		malloc.o \
-		mem.o \
 		qsort.o \
 		\
 		string/memchr.o \
 		string/memcmp.o \
+		string/memcpy.o \
+		string/memmove.o \
+		string/memset.o \
 		string/strcat.o \
 		string/strchr.o \
 		string/strcmp.o \
