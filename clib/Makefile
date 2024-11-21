@@ -84,7 +84,8 @@ clean:
 			kernel/*.o \
 			conversion/*.o \
 			string/*.o \
-			time/*.o
+			time/*.o \
+			sysvars/*.o
 
 ifeq (${CROSS_ROOT},)
 # If we're outside the docker container, re-run ourselves inside the container
@@ -209,9 +210,10 @@ OBJS = 	\
 		time/time-time.o \
 		time/time-gmtime.o \
 		\
-		sysvars.o \
-		sysvars-kernel.o \
-		sysvars-init.o \
+		sysvars/sysvars.o \
+		sysvars/sysvars-kernel.o \
+		sysvars/sysvars-init.o \
+		\
 		version.o \
 		\
 		e_rem_pio2.o \
