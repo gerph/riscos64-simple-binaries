@@ -47,6 +47,8 @@ export_headers: local_headers \
 
 riscos_headers/Lib/CLib/%.h: %.h | local_headers
 	cp $? $@
+riscos_headers/Lib/CLib/%.h: kernel/%.h | local_headers
+	cp $? $@
 riscos_headers/Lib/CLib/%.h: heap/%.h | local_headers
 	cp $? $@
 
@@ -78,7 +80,8 @@ clean:
 	-rm -rf *.o *.a *.bin *,ff8 *.map riscos_headers/ export/
 	-rm -rf heap/*.o \
 			io/*.o \
-			fs/*.o
+			fs/*.o \
+			kernel/*.o
 
 ifeq (${CROSS_ROOT},)
 # If we're outside the docker container, re-run ourselves inside the container
@@ -109,7 +112,7 @@ CFLAGS += -nostdlib -ffreestanding -march=armv8-a
 #CFLAGS += -nostdlib -ffreestanding -march=armv8-a+nofp
 
 # Add the exports directory to those things we'll build with
-CFLAGS += -Iriscos_headers/C/ -Iriscos_headers/Lib/ -I.
+CFLAGS += -Iriscos_headers/C/ -Iriscos_headers/Lib/ -Iriscos_headers/Lib/CLib/ -I.
 
 # Options to allow function signatures to appear RISC OS-like
 ifeq (${USE_FUNC_SIGNATURE},1)
@@ -159,13 +162,14 @@ OBJS = 	\
 		fs/fs-rename.o \
 		fs/fs-tmpnam.o \
 		\
-		kernel-backtrace.o \
-		kernel-escape.o \
-		kernel-state.o \
-		kernel-cli.o \
-		kernel-unwind-current.o \
-		kernel-unwind.o \
-		kernel.o \
+		kernel/kernel-backtrace.o \
+		kernel/kernel-escape.o \
+		kernel/kernel-state.o \
+		kernel/kernel-cli.o \
+		kernel/kernel-unwind-current.o \
+		kernel/kernel-unwind.o \
+		kernel/kernel.o \
+		\
 		longjmp.o \
 		main.o \
 		main-exit.o \
