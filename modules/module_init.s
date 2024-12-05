@@ -1,3 +1,4 @@
+.include "Asm/macros.hdr"
 
 .include "swis.hdr"
 .include "printmacros.hdr"
@@ -31,7 +32,7 @@ help:
 
 .balign 4
 
-init:
+        FUNC    "init"
         STP     x29, x30, [sp, #-16]!
         PrintLine "Module initialising"
         PrintMessage "Environment string: "
@@ -42,7 +43,7 @@ init:
         RET
 
 
-final:
+        FUNC    "final"
         STP     x29, x30, [sp, #-16]!
         PrintLine "Module finalising"
         MOV     x0, #0      // no error return

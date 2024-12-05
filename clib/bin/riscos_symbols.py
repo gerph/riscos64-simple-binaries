@@ -8,6 +8,10 @@ that contains the names of the functions in the file.
 
 This program will take those function names and the binary and patch
 them into it.
+
+The input can be either the output from the `ld ... --Map file.map`
+switch or the output from `objdump --syms ...`. The former doesn't
+include the local symbols.
 """
 
 import sys
@@ -27,42 +31,82 @@ base_address = None
 
 functions = {}
 
+map_type = 'unknown'
+
 # Read the symbols from the map file
 with open(map_file, "r") as fh:
     for line in fh:
         line = line.rstrip()
-        if line.startswith('Linker script and memory map'):
-            in_memory_map = True
-        elif line.startswith('OUTPUT'):
-            in_memory_map = False
-        elif in_memory_map:
-            if line.startswith(' .text'):
-                in_text = True
-                line = '      ' + line[6:]
+        if map_type == 'unknown':
+            if line.startswith('Archive member included to satisfy reference') or line == 'Memory Configuration':
+                map_type = 'linker-map'
+            elif line == 'SYMBOL TABLE:':
+                map_type = 'objdump-symbols'
 
-            elif line.startswith((' .data', ' .rodata')):
-                in_text = False
+        elif map_type == 'linker-map':
+            if line.startswith('Linker script and memory map'):
+                in_memory_map = True
+            elif line.startswith('OUTPUT'):
+                in_memory_map = False
+            elif in_memory_map:
+                if line.startswith(' .text'):
+                    in_text = True
+                    line = '      ' + line[6:]
 
-            if in_text:
-                if line.startswith('                0x'):
-                    # Possibly one of our lines
-                    line = line[16:]
-                    addr = int(line[0:18], 16)
-                    line = line[18:]
-                    if line.startswith('                '):
-                        # Looks good; probably the function left
-                        func = line[16:]
-                        if ' ' not in func and len(func) < max_func_len:
-                            #print("%08x : %s" % (addr, func))
-                            functions[addr] = func
+                elif line.startswith((' .data', ' .rodata')):
+                    in_text = False
 
-            elif base_address is None:
-                # Not in text but we're in the memory map
-                if line.startswith('                0x'):
-                    # This is our first address
-                    line = line[16:]
-                    base_address = int(line[0:18], 16)
+                if in_text:
+                    if line.startswith('                0x'):
+                        # Possibly one of our lines
+                        line = line[16:]
+                        addr = int(line[0:18], 16)
+                        line = line[18:]
+                        if line.startswith('                '):
+                            # Looks good; probably the function left
+                            func = line[16:]
+                            if ' ' not in func and len(func) < max_func_len:
+                                #print("%08x : %s" % (addr, func))
+                                functions[addr] = func
 
+                elif base_address is None:
+                    # Not in text but we're in the memory map
+                    if line.startswith('                0x'):
+                        # This is our first address
+                        line = line[16:]
+                        base_address = int(line[0:18], 16)
+
+        elif map_type == 'objdump-symbols':
+            if len(line) > 20:
+                # Minimum requirements
+                address = line[0:16]
+                flags = line[17:25]
+                tail = line[25:]
+                if '\t' not in tail:
+                    print("Unrecognised line: '%s'" % (line,))
+                    continue
+                (region, tail) = tail.split('\t', 1)
+                if debug:
+                    print("Flags: '%s', Region: '%s', tail: '%s'" % (flags, region, tail))
+                if ' ' not in tail:
+                    # Entry without a symbol name
+                    #print("Unrecognised line: '%s'" % (line,))
+                    continue
+                (size, symbol) = tail.split(' ', 1)
+                try:
+                    address = int(address, 16)
+                    size = int(size, 16)
+
+                    if 'F' in flags and region.startswith('.text'):
+                        # This is a function symbol in the code
+                        functions[address] = symbol
+
+                    if 'g' in flags and region == '*ABS*' and 'f' not in flags:
+                        if base_address is None or base_address > address:
+                            base_address = address
+                except ValueError:
+                    # Not an address line
+                    pass
 
 # Read the binary file
 with open(bin_file, "rb") as fh:

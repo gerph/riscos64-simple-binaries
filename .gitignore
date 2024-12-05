@@ -6,6 +6,7 @@ dockcross-linux-arm64
 *.a
 *.bin
 *.map
+*.syms
 */o32/*
 */util32/*
 

@@ -1,3 +1,5 @@
+.include "asm/macros.hdr"
+
 .text
 
 .global __draw_fill
@@ -7,7 +9,7 @@
 .global __os_byte_out1
 
 
-__draw_fill:
+    FUNC    "__draw_fill"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
     MOV     x10, #0x702                 // Draw_Fill
@@ -16,7 +18,7 @@ __draw_fill:
     LDP     x29, x30, [sp], #16
     RET
 
-__os_screenmode:
+    FUNC    "__os_screenmode"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
     MOV     x10, #0x65                  // OS_ScreenMode
@@ -24,7 +26,7 @@ __os_screenmode:
     LDP     x29, x30, [sp], #16
     RET
 
-__colourtrans_setgcol:
+    FUNC    "__colourtrans_setgcol"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
     MOV     x3, x1
@@ -35,7 +37,7 @@ __colourtrans_setgcol:
     LDP     x29, x30, [sp], #16
     RET
 
-__os_setcolour:
+    FUNC    "__os_setcolour"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
     MOV     x10, #0x61                  // OS_SetColour

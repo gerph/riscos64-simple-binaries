@@ -77,6 +77,9 @@ CFLAGS += -nostdlib -ffreestanding -march=armv8-a
 # Add the exports directory to those things we'll build with
 CFLAGS += -I${CLIBDIR}/C -I${CLIBDIR}/Lib/ -I${CLIBDIR}
 
+# CLib libraries for the headers
+AFLAGS += -I${CLIBDIR}
+
 # Options to allow function signatures to appear RISC OS-like
 ifeq (${USE_FUNC_SIGNATURE},1)
 CFLAGS += -fpatchable-function-entry=10,10
@@ -99,6 +102,7 @@ AS = aarch64-unknown-linux-gnu-as
 LD = aarch64-unknown-linux-gnu-ld
 AR = aarch64-unknown-linux-gnu-ar
 OBJCOPY = aarch64-unknown-linux-gnu-objcopy
+OBJDUMP = aarch64-unknown-linux-gnu-objdump
 
 OBJS =	${TARGET}.o
 
@@ -111,13 +115,13 @@ OBJS =	${TARGET}.o
 ${TARGET}.bin: link.lnk ${OBJS} ${CRT_OBJS}
 	${LD} ${OBJS} ${CRT_OBJS} ${LDFLAGS} -o $@
 
-${TARGET}.map: link.lnk ${OBJS} ${CRT_OBJS}
-	${LD} ${OBJS} ${CRT_OBJS} ${LDFLAGS} -Map $@ -o /dev/null
+${TARGET}.syms: ${TARGET}.bin
+	${OBJDUMP} -t $? > $@
 
 ifeq (${USE_FUNC_SIGNATURE},1)
-${TARGET},ffc: ${TARGET}.bin ${TARGET}.map
+${TARGET},ffc: ${TARGET}.bin ${TARGET}.syms
 	${OBJCOPY} -O binary -j .text ${TARGET}.bin $@
-	python ${CLIBDIR}/bin/riscos_symbols.py ${TARGET}.map $@
+	python ${CLIBDIR}/bin/riscos_symbols.py ${TARGET}.syms $@
 else
 ${TARGET},ffc: ${TARGET}.bin
 	${OBJCOPY} -O binary -j .text ${TARGET}.bin $@

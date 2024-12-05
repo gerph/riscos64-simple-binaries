@@ -1,9 +1,11 @@
+.include "asm/macros.hdr"
+
 .text
 
 .global _kernel_swi
 
 // _kernel_swi(int swinum, inregs, outregs)
-_kernel_swi:
+    FUNC    "_kernel_swi"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
     ORR     x10, x0, #0x20000           // SWI number with X bit set

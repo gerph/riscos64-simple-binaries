@@ -1,3 +1,5 @@
+.include "asm/macros.hdr"
+
 .text
 
 .global __os_writec
@@ -13,11 +15,11 @@
 .global __os_file3
 .global __os_fscontrol2
 .global __os_fscontrol3
-
 .global _kernel_osfile
 
 
-__os_writec:
+
+    FUNC    "__os_writec"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
     MOV     x10, #0                     // OS_WriteC
@@ -26,7 +28,7 @@ __os_writec:
     LDP     x29, x30, [sp], #16
     RET
 
-__os_readc:
+    FUNC    "__os_readc"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
     MOV     x10, #4                     // OS_ReadC
@@ -36,7 +38,7 @@ __os_readc:
     LDP     x29, x30, [sp], #16
     RET
 
-__os_word:
+    FUNC    "__os_word"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
     STRB    w1, [x2]
@@ -48,7 +50,7 @@ __os_word:
     LDP     x29, x30, [sp], #16
     RET
 
-__os_inkey:
+    FUNC    "__os_inkey"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
     AND     x1, x0, #255
@@ -71,7 +73,7 @@ __os_inkey_escape:
     MOV     x0, #-2
     B       __os_inkey_exit
 
-__os_write0:
+    FUNC    "__os_write0"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
     MOV     x10, #0x2                   // OS_Write0
@@ -80,7 +82,7 @@ __os_write0:
     LDP     x29, x30, [sp], #16
     RET
 
-__os_writen:
+    FUNC    "__os_writen"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
     MOV     x10, #0x46                  // OS_WriteN
@@ -89,7 +91,7 @@ __os_writen:
     LDP     x29, x30, [sp], #16
     RET
 
-__os_newline:
+    FUNC    "__os_newline"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
     MOV     x10, #0x3                   // OS_NewLine
@@ -98,7 +100,7 @@ __os_newline:
     LDP     x29, x30, [sp], #16
     RET
 
-__os_readescapestate:
+    FUNC    "__os_readescapestate"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
     MOV     x10, #0x2C                  // OS_ReadEscapeState
@@ -108,7 +110,7 @@ __os_readescapestate:
     LDP     x29, x30, [sp], #16
     RET
 
-__os_generateerror:
+    FUNC    "__os_generateerror"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
     MOV     x10, #0x2B                  // OS_GenerateError
@@ -117,7 +119,7 @@ __os_generateerror:
     MOV     x0, #1                      // If OS_GenerateError returns, we jump to the exit code
     B       exit
 
-__os_file2:
+    FUNC    "__os_file2"
 __os_file3:
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
@@ -132,7 +134,7 @@ __os_file3:
       x2-> buffer for x2-x5 (in and out)
    <= r0 = r0 on return; or -1 if error.
  */
-_kernel_osfile:
+    FUNC    "_kernel_osfile"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
 
@@ -162,7 +164,7 @@ _kosfile_skip_store:
     LDP     x29, x30, [sp], #16
     RET
 
-__os_fscontrol2:
+    FUNC    "__os_fscontrol2"
 __os_fscontrol3:
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp

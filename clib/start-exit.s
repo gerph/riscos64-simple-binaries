@@ -1,9 +1,11 @@
+.include "asm/macros.hdr"
+
 .text
 
 .global _Exit
 
 
-_Exit:
+        FUNC    "_Exit"
         MOV     x2, x0
         ADR     x0, return_error
         LDR     x1, abex

@@ -1,3 +1,5 @@
+.include "asm/macros.hdr"
+
 .text
 
 .global __os_heap
@@ -9,7 +11,7 @@
 //      R3 = size of block
 //      R4 = pointer to where to store R2 on return (or NULL to ignore)
 // <=   R0 = pointer to error, or NULL if ok
-__os_heap:
+    FUNC    "__os_heap"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
     MOV     x10, #0x1D                  // OS_Heap

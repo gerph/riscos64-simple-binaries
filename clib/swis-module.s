@@ -1,3 +1,5 @@
+.include "asm/macros.hdr"
+
 .text
 
 .global __os_module
@@ -8,7 +10,7 @@
 //      R2 = size of block
 //      R3 = pointer to where to store R2 on return (or NULL to ignore)
 // <=   R0 = pointer to error, or NULL if ok
-__os_module:
+    FUNC    "__os_module"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
     MOV     x4, x3

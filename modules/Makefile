@@ -90,7 +90,7 @@ CFLAGS += -O1
 CFLAGS += 
 
 # Assembler flags
-AFLAGS = -march=armv8-a
+AFLAGS = -march=armv8-a -I${CLIBDIR}/
 
 # Flags for the linker
 LDFLAGS = -T link.lnk

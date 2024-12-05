@@ -1,0 +1,17 @@
+//
+// Macros:
+//
+//   FUNC "function_name"
+//       - declares a function name and writes a signature
+//
+
+.altmacro
+.macro  FUNC func
+signature_start_\@:
+.asciz \func
+.balign 4
+signature_end_\@:
+.word 0xFF000000 + signature_end_\@ - signature_start_\@
+\func :
+.type \func STT_FUNC
+.endm
