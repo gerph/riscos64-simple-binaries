@@ -69,6 +69,29 @@ static int pad_output(outputter_t *out, formatparams_t *params, int size)
     return n;
 }
 
+static int write_with_newlines(outputter_t *out, const char *s, int size)
+{
+    int n = 0;
+    while (size > 0 && *s)
+    {
+        const char *nextnl = memchr(s, '\n', size);
+        if (nextnl != NULL)
+        {
+            int write = nextnl - s;
+            n += out->writen(out, s, write);
+            size -= write + 1;
+            s += write + 1;
+            n += out->newline(out);
+        }
+        else
+        {
+            n += out->writen(out, s, size);
+            break;
+        }
+    }
+    return n;
+}
+
 int _vprintf(outputter_t *out, const char *format, va_list args)
 {
     const char *next_nl = strchr(format, '\n');
@@ -246,6 +269,7 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
                 {
                     const char *s = va_arg(args, const char *);
                     int size;
+                    bool has_newline = false;
                     if (s==NULL)
                         s = "<NULL>";
                     if (params.precision != 0)
@@ -253,6 +277,8 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
                         for (size = 0; size < params.precision ; size++)
                         {
                             char sc = s[size];
+                            if (sc == '\n')
+                                has_newline = true;
                             if (sc == '\0')
                                 break;
                         }
@@ -263,13 +289,23 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
                     }
 
                     if (params.align_left)
-                        n += out->writen(out, s, size);
+                    {
+                        if (has_newline)
+                            n += write_with_newlines(out, s, size);
+                        else
+                            n += out->writen(out, s, size);
+                    }
 
                     if (params.field_width)
                         n += pad_output(out, &params, size);
 
                     if (!params.align_left)
-                        n += out->writen(out, s, size);
+                    {
+                        if (has_newline)
+                            n += write_with_newlines(out, s, size);
+                        else
+                            n += out->writen(out, s, size);
+                    }
                 }
                 break;
 

@@ -35,9 +35,6 @@ dockcross-linux-arm64:
 
 clean:
 	-rm -f *.o *.a *.bin *,ff8 *.map
-
-CRT_OBJS = 	${CLIBDIR}/libcrt.a
-
 ifeq (${CROSS_ROOT},)
 # If we're outside the docker container, re-run ourselves inside the container
 
@@ -63,6 +60,9 @@ else
 # We are within the docker container
 
 CLIBDIR = /ro64/clib
+
+CRT_OBJS = 	${CLIBDIR}/libcrt.a
+
 
 USE_FUNC_SIGNATURE ?= 1
 
