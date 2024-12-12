@@ -17,7 +17,8 @@ CROSS_ROOT = ${shell echo $$CROSS_ROOT}
 ALL_TARGETS = hello_world \
 				cog \
 				crash \
-				hello_world_printf
+				hello_world_printf \
+				simple_hello_world
 
 
 targetted:
