@@ -285,6 +285,7 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
                     }
                     else
                     {
+                        has_newline = strchr(s, '\n');
                         size = strlen(s);
                     }
 
