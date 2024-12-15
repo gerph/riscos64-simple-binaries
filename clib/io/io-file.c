@@ -306,11 +306,6 @@ char *fgets(char *str, int size, FILE *fh)
     return p;
 }
 
-
-
-#include <stdio.h>
-#include <string.h>
-
 int fputs(const char *str, FILE *fh)
 {
     if (!fh)
@@ -319,33 +314,6 @@ int fputs(const char *str, FILE *fh)
     int len = strlen(str ? str : "<NULL>");
 
     return fwrite(str, 1, len, fh);
-}
-
-int puts(const char *ptr)
-{
-    int total = strlen(ptr ? ptr : "<NULL>");
-    int wrote = 0;
-
-    while (total)
-    {
-        const char *next_nl = memchr(ptr, '\n', total);
-        if (next_nl == NULL)
-        {
-            os_writen(ptr, total);
-            wrote += total;
-            break;
-        }
-        int to_nl = (next_nl - (const char *)ptr);
-        os_writen(ptr, to_nl);
-        os_newline();
-        wrote += to_nl + 1;
-        total -= to_nl + 1;
-        ptr = ((const char *)ptr) + to_nl + 1;
-    }
-    os_newline();
-    wrote += 1;
-
-    return wrote;
 }
 
 int fileno(FILE *fh)
