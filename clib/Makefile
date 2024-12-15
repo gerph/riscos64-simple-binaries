@@ -161,6 +161,7 @@ OBJS = 	\
 		io/io-printf.o \
 		io/io-sprintf.o \
 		io/io-vprintf.o \
+		io/stackcheck.o \
 		\
 		fs/fs-remove.o \
 		fs/fs-rename.o \
@@ -199,6 +200,7 @@ OBJS = 	\
 		string/strrchr.o \
 		string/strspn.o \
 		string/strstr.o \
+		string/strcase.o \
 		\
 		conversion/atoi.o \
 		conversion/strtod.o \
@@ -226,6 +228,9 @@ OBJS = 	\
 		maths/s_sin.o \
 		maths/s_floor.o \
 		maths/s_scalbn.o \
+		\
+		random/rand.o \
+		random/random.o \
 		\
 		swis-extras.o \
 		swis-kernel.o \
