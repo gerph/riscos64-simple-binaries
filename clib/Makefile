@@ -165,6 +165,7 @@ OBJS = 	\
 		io/io-printf.o \
 		io/io-sprintf.o \
 		io/io-vprintf.o \
+		io/sscanf.o \
 		io/stackcheck.o \
 		\
 		fs/fs-remove.o \
