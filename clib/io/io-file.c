@@ -266,7 +266,10 @@ int fputc(int c, FILE *fh)
         return -1;
     if (fh == stdout || fh == stderr)
     {
-        os_writec(c);
+        if (c == '\n')
+            os_newline();
+        else
+            os_writec(c);
         return c;
     }
 
