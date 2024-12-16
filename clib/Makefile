@@ -85,7 +85,9 @@ clean:
 			conversion/*.o \
 			string/*.o \
 			time/*.o \
-			sysvars/*.o
+			sysvars/*.o \
+			ctypes/*.o \
+			random/*.o
 
 ifeq (${CROSS_ROOT},)
 # If we're outside the docker container, re-run ourselves inside the container
@@ -143,8 +145,10 @@ OBJS = 	\
 		assert.o \
 		abort.o \
 		\
-		ctypes.o \
-		ctypes_case.o \
+		ctypes/flags.o \
+		ctypes/lower.o \
+		ctypes/upper.o \
+		\
 		errno.o \
 		\
 		heap/accumulator.o \
@@ -161,6 +165,8 @@ OBJS = 	\
 		io/io-printf.o \
 		io/io-sprintf.o \
 		io/io-vprintf.o \
+		io/sscanf.o \
+		io/stackcheck.o \
 		\
 		fs/fs-remove.o \
 		fs/fs-rename.o \
@@ -199,6 +205,7 @@ OBJS = 	\
 		string/strrchr.o \
 		string/strspn.o \
 		string/strstr.o \
+		string/strcase.o \
 		\
 		conversion/atoi.o \
 		conversion/strtod.o \
@@ -218,6 +225,7 @@ OBJS = 	\
 		\
 		version.o \
 		\
+		maths/abs.o \
 		maths/e_rem_pio2.o \
 		maths/k_rem_pio2.o \
 		maths/k_cos.o \
@@ -226,6 +234,9 @@ OBJS = 	\
 		maths/s_sin.o \
 		maths/s_floor.o \
 		maths/s_scalbn.o \
+		\
+		random/rand.o \
+		random/random.o \
 		\
 		swis-extras.o \
 		swis-kernel.o \

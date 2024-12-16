@@ -305,3 +305,33 @@ char *fgets(char *str, int size, FILE *fh)
     *p = '\0';
     return p;
 }
+
+int fputs(const char *str, FILE *fh)
+{
+    if (!fh)
+        return -1;
+
+    int len = strlen(str ? str : "<NULL>");
+
+    return fwrite(str, 1, len, fh);
+}
+
+int fileno(FILE *fh)
+{
+    if (!fh)
+        return -1;
+
+    if (fh == stdin || fh == stdout || fh == stderr)
+        return -2;
+
+    // CHECK_MAGIC(fh, -1);
+
+    return fh->_fileno;
+}
+
+int isatty(int fd)
+{
+    if (fd == -2)
+        return 1;
+    return 0;
+}

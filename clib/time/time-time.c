@@ -11,7 +11,7 @@ time_t time(time_t *tloc)
 
     if (os_word(14, 3, (char*)&quin))
         quin = 0;
-    if (*tloc)
+    if (tloc)
         *tloc = quin / 100;
     return quin / 100;
 }
