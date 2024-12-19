@@ -75,7 +75,7 @@ int __cvt_uint64_decimal(uint64_t value, char *buffer)
     if (p == buffer)
         *p++ = '0';
 
-    *p++ = '\0';
+    *p = '\0';
 
     return p - buffer;
 }
