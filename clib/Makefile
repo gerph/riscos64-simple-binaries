@@ -134,6 +134,9 @@ CFLAGS += -DARCH_HAS_DIVISION
 # Assembler flags
 AFLAGS = -march=armv8-a
 
+# Compiler builtins
+BUILTIN_OBJS = builtins/fixtfdi.o
+CFLAGS += -Ibuiltins/
 
 CC = aarch64-unknown-linux-gnu-gcc
 AS = aarch64-unknown-linux-gnu-as
@@ -245,6 +248,8 @@ OBJS = 	\
 		swis.o \
 		start.o \
 		start-exit.o \
+		\
+		${BUILTIN_OBJS}
 
 #		trunc.o \
 #		fabs.o \

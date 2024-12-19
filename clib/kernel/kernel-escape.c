@@ -11,5 +11,7 @@
 int _kernel_escape_seen(void)
 {
     /* FIXME: We don't have a handler for escapes, so we're going to use OS_ReadEscapeState */
-    return os_readescapestate();
+    int state = os_readescapestate();
+    //printf("[escape = %c]", state ? 'Y' : 'n');
+    return state;
 }
