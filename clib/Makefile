@@ -87,6 +87,7 @@ clean:
 			time/*.o \
 			sysvars/*.o \
 			ctypes/*.o \
+			maths/*.o \
 			random/*.o
 
 ifeq (${CROSS_ROOT},)
@@ -135,8 +136,64 @@ CFLAGS += -DARCH_HAS_DIVISION
 AFLAGS = -march=armv8-a
 
 # Compiler builtins
-BUILTIN_OBJS = builtins/fixtfdi.o
+BUILTIN_OBJS = \
+		builtins/fp_mode.o \
+		builtins/addtf3.o \
+		builtins/subtf3.o \
+		builtins/fixtfdi.o \
+		builtins/comparetf2.o \
+		builtins/extenddftf2.o \
+		builtins/extendsftf2.o \
+		builtins/floatditf.o \
+		builtins/trunctfdf2.o
 CFLAGS += -Ibuiltins/
+
+# Maths libraries
+MATHS_OBJS = \
+		maths/e_acos.o \
+		maths/e_acosf.o \
+		maths/e_asin.o \
+		maths/e_asinf.o \
+		maths/e_exp.o \
+		maths/e_expf.o \
+		maths/e_log.o \
+		maths/e_logf.o \
+		maths/e_pow.o \
+		maths/e_powf.o \
+		maths/e_rem_pio2.o \
+		maths/e_sqrt.o \
+		maths/e_sqrtf.o \
+		\
+		maths/k_rem_pio2.o \
+		maths/k_cos.o \
+		maths/k_cosf.o \
+		maths/k_sin.o \
+		maths/k_sinf.o \
+		maths/k_tan.o \
+		maths/k_tanf.o \
+		\
+		maths/s_atan.o \
+		maths/s_atanf.o \
+		maths/s_copysign.o \
+		maths/s_copysignf.o \
+		maths/s_cos.o \
+		maths/s_cosf.o \
+		maths/s_fabs.o \
+		maths/s_fabsf.o \
+		maths/s_floor.o \
+		maths/s_floorf.o \
+		maths/s_floorl.o \
+		maths/s_sin.o \
+		maths/s_sinf.o \
+		maths/s_tan.o \
+		maths/s_tanf.o \
+		maths/s_trunc.o \
+		maths/s_truncf.o \
+		maths/s_truncl.o \
+		maths/s_scalbn.o \
+
+CFLAGS += -Imaths/include/
+
 
 CC = aarch64-unknown-linux-gnu-gcc
 AS = aarch64-unknown-linux-gnu-as
@@ -228,15 +285,9 @@ OBJS = 	\
 		\
 		version.o \
 		\
-		maths/abs.o \
-		maths/e_rem_pio2.o \
-		maths/k_rem_pio2.o \
-		maths/k_cos.o \
-		maths/s_cos.o \
-		maths/k_sin.o \
-		maths/s_sin.o \
-		maths/s_floor.o \
-		maths/s_scalbn.o \
+		abs.o \
+		\
+		${MATHS_OBJS} \
 		\
 		random/rand.o \
 		random/random.o \

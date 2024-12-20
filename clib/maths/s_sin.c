@@ -1,3 +1,4 @@
+/* @(#)s_sin.c 5.1 93/09/24 */
 /*
  * ====================================================
  * Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
@@ -7,9 +8,10 @@
  * software is freely granted, provided that this notice
  * is preserved.
  * ====================================================
- *
- * from: https://github.com/freebsd/freebsd-src/blob/main/lib/msun/src/s_sin.c
  */
+
+#include "cdefs-compat.h"
+//__FBSDID("$FreeBSD: src/lib/msun/src/s_sin.c,v 1.13 2011/02/10 07:37:50 das Exp $");
 
 /* sin(x)
  * Return sine function of x.
@@ -43,13 +45,13 @@
  */
 
 #include <float.h>
+#include <openlibm_math.h>
 
-#include "math.h"
-#define INLINE_REM_PIO2
+//#define INLINE_REM_PIO2
 #include "math_private.h"
-#include "e_rem_pio2.c"
+//#include "e_rem_pio2.c"
 
-double
+OLM_DLLEXPORT double
 sin(double x)
 {
     double y[2],z=0.0;
@@ -83,5 +85,5 @@ sin(double x)
 }
 
 #if (LDBL_MANT_DIG == 53)
-__weak_reference(sin, sinl);
+openlibm_weak_reference(sin, sinl);
 #endif

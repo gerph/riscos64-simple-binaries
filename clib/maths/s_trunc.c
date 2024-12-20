@@ -11,15 +11,15 @@
  */
 
 #include "cdefs-compat.h"
-//__FBSDID("$FreeBSD: src/lib/msun/src/s_floor.c,v 1.11 2008/02/15 07:01:40 bde Exp $");
+//__FBSDID("$FreeBSD: src/lib/msun/src/s_trunc.c,v 1.4 2008/02/22 02:27:34 das Exp $");
 
 /*
- * floor(x)
- * Return x rounded toward -inf to integral value
+ * trunc(x)
+ * Return x rounded toward 0 to integral value
  * Method:
  *	Bit twiddling.
  * Exception:
- *	Inexact flag raised if x not equal to floor(x).
+ *	Inexact flag raised if x not equal to trunc(x).
  */
 
 #include <float.h>
@@ -30,24 +30,22 @@
 static const double huge = 1.0e300;
 
 OLM_DLLEXPORT double
-floor(double x)
+trunc(double x)
 {
 	int32_t i0,i1,j0;
-	u_int32_t i,j;
+	u_int32_t i;
 	EXTRACT_WORDS(i0,i1,x);
 	j0 = ((i0>>20)&0x7ff)-0x3ff;
 	if(j0<20) {
 	    if(j0<0) { 	/* raise inexact if x != 0 */
-		if(huge+x>0.0) {/* return 0*sign(x) if |x|<1 */
-		    if(i0>=0) {i0=i1=0;}
-		    else if(((i0&0x7fffffff)|i1)!=0)
-			{ i0=0xbff00000;i1=0;}
+		if(huge+x>0.0) {/* |x|<1, so return 0*sign(x) */
+		    i0 &= 0x80000000U;
+		    i1 = 0;
 		}
 	    } else {
 		i = (0x000fffff)>>j0;
 		if(((i0&i)|i1)==0) return x; /* x is integral */
 		if(huge+x>0.0) {	/* raise inexact flag */
-		    if(i0<0) i0 += (0x00100000)>>j0;
 		    i0 &= (~i); i1=0;
 		}
 	    }
@@ -57,22 +55,13 @@ floor(double x)
 	} else {
 	    i = ((u_int32_t)(0xffffffff))>>(j0-20);
 	    if((i1&i)==0) return x;	/* x is integral */
-	    if(huge+x>0.0) { 		/* raise inexact flag */
-		if(i0<0) {
-		    if(j0==20) i0+=1;
-		    else {
-			j = i1+(1<<(52-j0));
-			if(j<i1) i0 +=1 ; 	/* got a carry */
-			i1=j;
-		    }
-		}
+	    if(huge+x>0.0)		/* raise inexact flag */
 		i1 &= (~i);
-	    }
 	}
 	INSERT_WORDS(x,i0,i1);
 	return x;
 }
 
 #if LDBL_MANT_DIG == 53
-openlibm_weak_reference(floor, floorl);
+openlibm_weak_reference(trunc, truncl);
 #endif
