@@ -88,21 +88,25 @@ clean:
 			sysvars/*.o \
 			ctypes/*.o \
 			maths/*.o \
-			random/*.o
+			random/*.o \
+			VersionNum
 
 ifeq (${CROSS_ROOT},)
 # If we're outside the docker container, re-run ourselves inside the container
 ifneq ($(filter-out all shell dockcross-linux-arm64 clean export,${MAKECMDGOALS}),)
 # The command wasn't one of our invocation commands above
 .PHONY: ${MAKECMDGOALS}
-${MAKECMDGOALS}: dockcross-linux-arm64
+${MAKECMDGOALS}: dockcross-linux-arm64 VersionNum
 	./dockcross-linux-arm64 make ${MAKECMDGOALS}
 else
 .PHONY: ${DEFAULT_GOAL}
-${DEFAULT_GOAL}: dockcross-linux-arm64
+${DEFAULT_GOAL}: dockcross-linux-arm64 VersionNum
 	./dockcross-linux-arm64 make ${DEFAULT_GOAL}
+
 endif
 
+VersionNum: ../VersionNum
+	cp $? $@
 else
 # We are inside the docker container
 
@@ -315,5 +319,6 @@ libcrt.a: ${OBJS}
 %.o: %.s
 	${AS} ${AFLAGS} -o $@ $?
 
+version.o: | VersionNum
 
 endif
