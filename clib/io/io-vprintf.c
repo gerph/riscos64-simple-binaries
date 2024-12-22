@@ -8,6 +8,9 @@
 /* Define this if printing a '0' just gives zero, with no prefix 0x or 0, etc */
 #define ZERO_IS_JUST_ZERO
 
+#ifndef NO_FP
+#include "gdtoa.h"
+#endif
 
 typedef struct formatparams_s {
     int alternate;
@@ -26,7 +29,7 @@ static int count_pad_digits(formatparams_t *params, int size, char *prefix)
         n = strlen(prefix);
     if (params->digit_pad)
     {
-        int pad = (params->precision ? params->precision : (params->align_left ? size : (params->field_width - n))) - size;
+        int pad = (params->precision > 0 ? params->precision : (params->align_left ? size : (params->field_width - n))) - size;
         if (pad > 0)
             n += pad;
     }
@@ -41,7 +44,7 @@ static int pad_digits(outputter_t *out, formatparams_t *params, int size, char *
 
     if (params->digit_pad)
     {
-        int pad = (params->precision ? params->precision : (params->align_left ? size : (params->field_width - n))) - size;
+        int pad = (params->precision > 0 ? params->precision : (params->align_left ? size : (params->field_width - n))) - size;
         if (pad > 0)
         {
             char shortbuf[8];
@@ -100,6 +103,7 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
     while (*format)
     {
         formatparams_t params = {0};
+        params.precision = -1;
         char c;
         const char *next_percent = strchr(format, '%');
         if (next_percent == NULL && next_nl == NULL)
@@ -272,7 +276,7 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
                     bool has_newline = false;
                     if (s==NULL)
                         s = "<NULL>";
-                    if (params.precision != 0)
+                    if (params.precision > 0)
                     {
                         for (size = 0; size < params.precision ; size++)
                         {
@@ -325,7 +329,7 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
                     uint64_t value;
                     char signbuf[2] = " ";
                     char *prefix = NULL;
-                    if (params.precision && !params.digit_pad)
+                    if (params.precision > 0 && !params.digit_pad)
                         params.digit_pad = '0';
                     if (c == 'u' || hex || c == 'o')
                     {
@@ -456,6 +460,32 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
                     }
                 }
                 break;
+
+#ifndef NO_FP
+            case 'f':
+                double value = va_arg(args, double);
+                int ndigits = params.precision == -1 ? 6 : params.precision;
+                //char temp[ndigits + 7];
+                char temp[64] = "X";
+                if (ndigits > sizeof(temp) - 7)
+                    ndigits = sizeof(temp) - 7;
+                char *end = g_dfmt(temp, &value, ndigits, sizeof(temp));
+                int size = end - temp;
+                if (params.align_left)
+                {
+                    n += out->writen(out, temp, size);
+                }
+
+                if (params.field_width)
+                    n += pad_output(out, &params, size);
+
+                if (!params.align_left)
+                {
+                    n += out->writen(out, temp, size);
+                }
+
+                break;
+#endif
 
             default:
                 n += out->writec(out, '%');

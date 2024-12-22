@@ -194,6 +194,17 @@ MATHS_OBJS = \
 
 CFLAGS += -Imaths/include/
 
+# dtoa libraries
+DTOA_OBJS = \
+		dtoa/gdtoa.o \
+		dtoa/g__fmt.o \
+		dtoa/g_dfmt.o \
+		dtoa/gmisc.o \
+		dtoa/misc.o \
+		dtoa/dmisc.o \
+
+CFLAGS += -Idtoa/
+
 
 CC = aarch64-unknown-linux-gnu-gcc
 AS = aarch64-unknown-linux-gnu-as
@@ -300,6 +311,7 @@ OBJS = 	\
 		start.o \
 		start-exit.o \
 		\
+		${DTOA_OBJS} \
 		${BUILTIN_OBJS}
 
 #		trunc.o \
