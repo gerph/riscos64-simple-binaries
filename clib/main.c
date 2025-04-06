@@ -5,6 +5,7 @@
 #include "heap/init.h"
 #include "time/time-clock.h"
 #include "swis_os.h"
+#include "env.h"
 
 /* Define this to put the arguments on the stack, rather then in the heap */
 #define BUILD_ARGV_ON_STACK
@@ -38,6 +39,9 @@ int __main(const char *cli,
            void *memend)
 {
     int rc;
+
+    /* We want to initialise the environment so that we exit cleanly */
+    _env_init();
 
     /**** Check out memory is sufficient and that we can allocate heap ****/
     /* WARNING: The stack limit is not currently enforced here */

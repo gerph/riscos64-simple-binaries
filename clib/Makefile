@@ -246,11 +246,13 @@ OBJS = 	\
 		kernel/kernel-escape.o \
 		kernel/kernel-state.o \
 		kernel/kernel-cli.o \
+		kernel/kernel-system.o \
 		kernel/kernel-unwind-current.o \
 		kernel/kernel-unwind.o \
 		kernel/kernel.o \
 		\
 		longjmp.o \
+		env.o \
 		main.o \
 		main-exit.o \
 		module.o \

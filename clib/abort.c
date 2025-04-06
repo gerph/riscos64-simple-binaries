@@ -14,5 +14,6 @@ void __attribute__ ((__noreturn__))
 
     _kernel_backtrace();
 
+    /* Should we restore the environment and generate an error ? */
     exit(1);
 }

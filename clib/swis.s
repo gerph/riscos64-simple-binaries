@@ -16,7 +16,7 @@
 .global __os_fscontrol2
 .global __os_fscontrol3
 .global _kernel_osfile
-
+.global __os_changeenvironment
 
 
     FUNC    "__os_writec"
@@ -107,6 +107,27 @@ __os_inkey_escape:
     ORR     x10, x10, #0x20000
     SVC     #0
 // We avoid flag returns from SWIs on RISC OS 64, so this returns the state in x0
+    LDP     x29, x30, [sp], #16
+    RET
+
+// r0 = envnumber, r1 = handler, r2 = workspace, r3 = buffer, r4-> old values (r1,r2,r3)
+// returns r0-> error
+    FUNC    "__os_changeenvironment"
+    STP     x29, x30, [sp, #-16]!
+    MOV     x29, sp
+    MOV     x10, #0x40                  // OS_ChangeEnvironment
+    ORR     x10, x10, #0x20000
+    SVC     #0
+    BVS     __os_changeenvironment_error
+
+    CMP     x4, #0
+    BEQ     __os_changeenvironment_exit
+    STP     x1, x2, [x4]
+    STR     x3, [x4, #16]
+__os_changeenvironment_exit:
+    MOV     x0, #0                      // no error
+
+__os_changeenvironment_error:
     LDP     x29, x30, [sp], #16
     RET
 
