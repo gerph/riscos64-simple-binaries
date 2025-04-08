@@ -72,15 +72,58 @@ typedef struct handlers_s {
     intptr_t        upcall_unused_r3;
 } handlers_t;
 
-handlers_t oldhandlers;
+static handlers_t oldhandlers;
+
+typedef struct riscos_error_buffer_s {
+    uint32_t        pc; /* FIXME: This is only 32bit at the moment */
+    _kernel_oserror err;
+} riscos_error_buffer_t;
+static riscos_error_buffer_t error_buffer;
 
 #define ENV_READ ((intptr_t)0)
 
 
+/*************************************************** Gerph *********
+ Function:      _env_escape
+ Description:   Environment handler when escape pressed
+ Parameters:    none
+ Returns:       none
+ ******************************************************************/
 void _env_escape(void)
 {
+    static int reentered = 0;
     static _kernel_oserror err_escape = {17, "Escape"};
+    if (reentered)
+        return;
+    reentered = 1;
+    os_byte_out1(0x7e, 0, 0); /* Acknowledge escape */
+    reentered = 0;
     os_generateerror(&err_escape);
+}
+
+/*************************************************** Gerph *********
+ Function:      _env_error
+ Description:   Environment handler for an error
+ Parameters:    none
+ Returns:       none
+ ******************************************************************/
+void _env_error(_kernel_oserror *err)
+{
+    _clib_finalise();
+    _env_restore();
+    os_generateerror(err);
+}
+
+/*************************************************** Gerph *********
+ Function:      _env_exit
+ Description:   Environment handler when exit is called
+ Parameters:    none
+ Returns:       none
+ ******************************************************************/
+void _env_exit(_kernel_oserror *err)
+{
+    _clib_finalise();
+    _Exit(0);
 }
 
 
@@ -117,7 +160,7 @@ void _env_init(void)
                          &oldhandlers.abort_exception_handler);
 
     os_changeenvironment(ErrorHandler,
-                         ENV_READ, ENV_READ, ENV_READ,
+                         &_env_error, &error_buffer.err, &error_buffer,
                          &oldhandlers.error_handler);
 
     os_changeenvironment(CallBackHandler,
@@ -133,7 +176,7 @@ void _env_init(void)
                          &oldhandlers.event_handler);
 
     os_changeenvironment(ExitHandler,
-                         ENV_READ, ENV_READ, ENV_READ,
+                         &_env_exit, ENV_READ, ENV_READ,
                          &oldhandlers.exit_handler);
 
     os_changeenvironment(UpCallHandler,

@@ -17,6 +17,7 @@ typedef struct {
    int32_t start, end;       /* start address/length, end address/attributes */
 } _kernel_osfile_block;
 
+#define _KERNEL_NOXBIT (1lu<<31)    /* Always clear the X bit (otherwise always set) */
 _kernel_oserror *_kernel_swi(int swinum, _kernel_swi_regs *in, _kernel_swi_regs *out);
 
 int _kernel_oscli(const char *cli);

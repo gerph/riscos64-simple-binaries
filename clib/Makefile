@@ -249,7 +249,8 @@ OBJS = 	\
 		kernel/kernel-system.o \
 		kernel/kernel-unwind-current.o \
 		kernel/kernel-unwind.o \
-		kernel/kernel.o \
+		kernel/kernel-swi.o \
+		kernel/kernel-swix.o \
 		\
 		longjmp.o \
 		env.o \

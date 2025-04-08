@@ -5,10 +5,14 @@
 .global _kernel_swi
 
 // _kernel_swi(int swinum, inregs, outregs)
+// If b31 of swinum is set, we clear the X bit.
     FUNC    "_kernel_swi"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
-    ORR     x10, x0, #0x20000           // SWI number with X bit set
+    MOV     x3, x0, LSR #31-17
+    AND     x3, x3, #0x20000
+    ORR     x10, x0, #0x20000               // SWI number with X bit set
+    BIC     x10, x10, x3
     MOV     x11, x2
 
 // Initialise registers
