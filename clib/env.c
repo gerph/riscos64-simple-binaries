@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <signal.h>
 #include "kernel.h"
 #include "env.h"
 #include "swis_os.h"
@@ -92,13 +93,12 @@ static riscos_error_buffer_t error_buffer;
 void _env_escape(void)
 {
     static int reentered = 0;
-    static _kernel_oserror err_escape = {17, "Escape"};
     if (reentered)
         return;
     reentered = 1;
     os_byte_out1(0x7e, 0, 0); /* Acknowledge escape */
     reentered = 0;
-    os_generateerror(&err_escape);
+    raise(SIGINT);
 }
 
 /*************************************************** Gerph *********

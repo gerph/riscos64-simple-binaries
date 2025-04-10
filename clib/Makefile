@@ -254,6 +254,7 @@ OBJS = 	\
 		\
 		longjmp.o \
 		env.o \
+		signal.o \
 		main.o \
 		main-exit.o \
 		module.o \

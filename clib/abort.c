@@ -1,19 +1,14 @@
 #include <stdlib.h>
 #include <assert.h>
+#include <signal.h>
 #include "kernel.h"
 #include "swis.h"
-#include "swis_os.h"
-#include "conversion/cvt.h"
 
 void __attribute__ ((__noreturn__))
      abort(void)
 {
-    os_write0("Aborted");
-    os_newline();
-    os_newline();
+    raise(SIGABRT);
 
-    _kernel_backtrace();
-
-    /* Should we restore the environment and generate an error ? */
+    /* If we returned, we need to just get out */
     exit(1);
 }
