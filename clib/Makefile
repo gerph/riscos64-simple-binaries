@@ -178,6 +178,9 @@ MATHS_OBJS = \
 		\
 		maths/s_atan.o \
 		maths/s_atanf.o \
+		maths/s_ceil.o \
+		maths/s_ceill.o \
+		maths/s_ceilf.o \
 		maths/s_copysign.o \
 		maths/s_copysignf.o \
 		maths/s_cos.o \
@@ -187,6 +190,9 @@ MATHS_OBJS = \
 		maths/s_floor.o \
 		maths/s_floorf.o \
 		maths/s_floorl.o \
+		maths/s_nextafter.o \
+		maths/s_nextafterl.o \
+		maths/s_nextafterf.o \
 		maths/s_sin.o \
 		maths/s_sinf.o \
 		maths/s_tan.o \
@@ -249,7 +255,9 @@ OBJS = 	\
 		main-exit.o \
 		module.o \
 		malloc.o \
+		\
 		qsort.o \
+		bsearch.o \
 		\
 		string/memchr.o \
 		string/memcmp.o \

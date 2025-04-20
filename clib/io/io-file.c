@@ -237,7 +237,7 @@ int fgetc(FILE *fh)
 
     CHECK_MAGIC(fh, -1);
 
-    err = _swix(OS_BGet, _IN(0)|_OUT(0), fh->_fileno, &c);
+    err = _swix(OS_BGet, _IN(1)|_OUT(0), fh->_fileno, &c);
     /* FIXME: Doesn't check for EOF */
     if (err)
         return -1;
@@ -275,7 +275,7 @@ int fputc(int c, FILE *fh)
 
     CHECK_MAGIC(fh, -1);
 
-    err = _swix(OS_BPut, _INR(0, 1), fh->_fileno, c);
+    err = _swix(OS_BPut, _INR(0, 1), c, fh->_fileno);
     if (err)
         return -1;
 
@@ -295,7 +295,7 @@ char *fgets(char *str, int size, FILE *fh)
 
     CHECK_MAGIC(fh, NULL);
 
-    for (p = str; p - str > 1; p++)
+    for (p = str; p - str < size - 1; p++)
     {
         int c = fgetc(fh);
         if (c == -1)
