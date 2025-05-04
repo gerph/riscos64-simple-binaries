@@ -295,6 +295,9 @@ OBJS = 	\
 		time/time-clock.o \
 		time/time-time.o \
 		time/time-gmtime.o \
+		time/time-localtime.o \
+		time/strftime.o \
+		time/asctime.o \
 		\
 		sysvars/sysvars.o \
 		sysvars/sysvars-kernel.o \
