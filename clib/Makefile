@@ -281,6 +281,7 @@ OBJS = 	\
 		string/strrchr.o \
 		string/strspn.o \
 		string/strstr.o \
+		string/strtok.o \
 		string/strcase.o \
 		\
 		conversion/atoi.o \
