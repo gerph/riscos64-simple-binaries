@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <stdint.h>
 
 /* Locale: en_GB.ISO8859-1 */
@@ -20,10 +21,12 @@ const int32_t __ctype_toupper_iso8859_1[256] = {
     208, 209, 210, 211, 212, 213, 214, 247, 216, 217, 218, 219, 220, 221, 222, 255, 
 };
 
-const int32_t *__ctype_toupper = __ctype_toupper_iso8859_1;
+const int32_t *__ctype_toupper = NULL;
 
 const int32_t **__ctype_toupper_loc(void)
 {
+    if (__ctype_toupper == NULL)
+        __ctype_toupper = &__ctype_toupper_iso8859_1; /* Bug in module compilation prevents this being initialised */
     return (const int32_t **)&__ctype_toupper;
 }
 

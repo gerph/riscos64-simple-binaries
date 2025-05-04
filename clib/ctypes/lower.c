@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <stdint.h>
 
 /* Locale: en_GB.ISO8859-1 */
@@ -20,10 +21,12 @@ const int32_t __ctype_tolower_iso8859_1[256] = {
     240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 
 };
 
-const int32_t *__ctype_tolower = __ctype_tolower_iso8859_1;
+int32_t *__ctype_tolower = NULL;
 
 const int32_t **__ctype_tolower_loc(void)
 {
+    if (__ctype_tolower == NULL)
+        __ctype_tolower = &__ctype_tolower_iso8859_1; /* Bug in module compilation prevents this being initialised */
     return (const int32_t **)&__ctype_tolower;
 }
 
