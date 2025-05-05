@@ -231,6 +231,7 @@ OBJS = 	\
 		io/io-console.o \
 		io/io-file-init.o \
 		io/io-file.o \
+		io/io-fgets.o \
 		io/io-fprintf.o \
 		io/io-printf.o \
 		io/io-sprintf.o \
