@@ -34,8 +34,6 @@ dockcross-linux-arm64:
 clean:
 	-rm -f *.o *.a *.bin *,ffc *.map
 
-CRT_OBJS = 	${CLIBDIR}/libcrt.a
-
 ifeq (${CROSS_ROOT},)
 # If we're outside the docker container, re-run ourselves inside the container
 
@@ -62,6 +60,9 @@ else
 
 CLIBDIR = /ro64/clib
 
+CRT_OBJS = 	${CLIBDIR}/libcrt.a
+
+
 USE_FUNC_SIGNATURE ?= 1
 
 # Remove the flags that might make code think it's compiling for linux system.
@@ -85,6 +86,9 @@ ifeq (${USE_FUNC_SIGNATURE},1)
 CFLAGS += -fpatchable-function-entry=10,10
 endif
 
+# Position independant code allows relocation
+CFLAGS += -fPIC
+
 # Optimisation options
 CFLAGS += -O1
 
@@ -95,7 +99,7 @@ CFLAGS +=
 AFLAGS = -march=armv8-a
 
 # Flags for the linker
-LDFLAGS = -T link.lnk
+LDFLAGS = -T ${CLIBDIR}/linker/utility.lnk
 
 CC = aarch64-unknown-linux-gnu-gcc
 AS = aarch64-unknown-linux-gnu-as
@@ -103,6 +107,8 @@ LD = aarch64-unknown-linux-gnu-ld
 AR = aarch64-unknown-linux-gnu-ar
 OBJCOPY = aarch64-unknown-linux-gnu-objcopy
 OBJDUMP = aarch64-unknown-linux-gnu-objdump
+ROSYMBOLS = ${CLIBDIR}/bin/riscos64-addsignatures
+RORELOC = ${CLIBDIR}/bin/riscos64-mkreloc
 
 OBJS =	${TARGET}.o
 
@@ -112,19 +118,23 @@ OBJS =	${TARGET}.o
 %.o: %.s
 	${AS} ${AFLAGS} -o $@ $?
 
-${TARGET}.bin: link.lnk ${OBJS} ${CRT_OBJS}
-	${LD} ${OBJS} ${CRT_OBJS} ${LDFLAGS} -o $@
+${TARGET}.bin: ${OBJS} ${CRT_OBJS}
+	${LD} -r ${OBJS} ${CRT_OBJS} ${LDFLAGS} -o $@.tmp
+	${OBJDUMP} --reloc --syms --wide $@.tmp > $@.syms
+	${RORELOC} $@.syms $@.reloc
+	${LD} ${OBJS} $@.reloc ${CRT_OBJS} ${LDFLAGS} -o $@
+	${RM} -f $@.tmp $@.symsx $@.reloc
 
 ${TARGET}.syms: ${TARGET}.bin
 	${OBJDUMP} -t $? > $@
 
 ifeq (${USE_FUNC_SIGNATURE},1)
 ${TARGET},ffc: ${TARGET}.bin ${TARGET}.syms
-	${OBJCOPY} -O binary -j .text ${TARGET}.bin $@
-	python ${CLIBDIR}/bin/riscos_symbols.py ${TARGET}.syms $@
+	${OBJCOPY} -O binary -j .text -j .rodata -j .data -j .data.rel -j .data.rel ${TARGET}.bin $@
+	python ${ROSYMBOLS} ${TARGET}.syms $@
 else
 ${TARGET},ffc: ${TARGET}.bin
-	${OBJCOPY} -O binary -j .text ${TARGET}.bin $@
+	${OBJCOPY} -O binary -j .text -j .rodata -j .data -j .data.rel -j .data.rel ${TARGET}.bin $@
 endif
 
 endif

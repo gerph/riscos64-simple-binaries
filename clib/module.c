@@ -14,6 +14,9 @@
 _kernel_oserror *_clib_initialisemodule(void *pwp)
 {
     /* Perform zero-init ? */
+    void __attribute__((weak)) __RelocCode(void);
+    if (__RelocCode)
+
     _kernel_inmodule = true;
     return NULL;
 }

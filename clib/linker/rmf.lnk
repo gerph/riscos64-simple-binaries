@@ -1,53 +1,72 @@
 MEMORY
 {
     /* We build our modules to start at offset 4 to allow for the module heap header */
-    rmf (rwx) : ORIGIN = 0x4, LENGTH = 0x10000000
+    rmf (rwx) : ORIGIN = 0x0, LENGTH = 0x10000000
 }
 
 SECTIONS
 {
-    RMF_BASE = 0x4;
+    RMF_BASE = 0x0;
 
     .text RMF_BASE :
     {
-        _code_start = ABSOLUTE(.);
+        __CodeStart = ABSOLUTE(.);
 
         KEEP(*(.init.rmf));
         *(.init.rmf);
         *(.text)
         *(.text.*)
         . = ALIGN(16);
-        _code_end = ABSOLUTE(.);
-        _code_size = _code_end - _code_start;
+        __CodeEnd = ABSOLUTE(.);
+    } > rmf
+    __CodeSize = SIZEOF(.text);
 
-        _rodata_start = ABSOLUTE(.);
+    .rodata . : {
+        __RODataStart = ABSOLUTE(.);
         *(.rodata)
         *(.rodata.*)
+        __GOTStart = ABSOLUTE(.);
         *(.got)
+        __GOTEnd = ABSOLUTE(.);
         *(.got.plt)
         . = ALIGN(16);
-        _rodata_end = ABSOLUTE(.);
-        _rodata_size = _rodata_end - _rodata_start;
+        __RODataEnd = ABSOLUTE(.);
+    } > rmf
 
-        _rodata_plus_code_size = _rodata_size + _code_size;
+    __RODataSize = SIZEOF(.rodata);
+    __ROSize = __RODataSize + __CodeSize;
 
-        _data_start = ABSOLUTE(.);
+    .data . : {
+        __DataStart = ABSOLUTE(.);
+        /* FIXME: We may wish to align to a page boundary here */
         *(.data)
         . = ALIGN(16);
-        _data_end = ABSOLUTE(.);
-        _data_size = _data_end - _data_start;
+    } > rmf
 
-        /* The zero initialised region */
+    __DataRelStart = ABSOLUTE(.);
+    .data.rel . : {
+        . = ALIGN(16);
+        *(.data.rel)
+        *(.data.rel.*)
+
         . = ALIGN(16);
 
+        /* The zero initialised region follows */
     } > rmf
+    __DataEnd = ABSOLUTE(.);
+    __DataRelEnd = ABSOLUTE(.);
+    __DataRelSize = SIZEOF(.data.rel);
+    __DataSize = SIZEOF(.data) + SIZEOF(.data.rel);
 
-    _zinit_start = ABSOLUTE(.);
+    __ZIStart = ABSOLUTE(.);
     .bss (NOLOAD) : {
         *(.bss .bss.*)
+        . = ALIGN(16);
     } > rmf
-    _zinit_end = ABSOLUTE(.);
-    _zinit_size = SIZEOF(.bss);
+    __ZIEnd = ABSOLUTE(.);
+    __ZISize = SIZEOF(.bss);
+
+    __RWSize = __DataSize + __ZISize;
 
     /* Place the eh_frame and others out of the way - we don't use them yet */
     .eh_frame (NOLOAD) : { *(.eh_frame) }

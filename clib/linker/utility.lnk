@@ -9,13 +9,13 @@ SECTIONS
 
     .text UTIL_BASE :
     {
-        _code_start = ABSOLUTE(.);
+        __CodeStart = ABSOLUTE(.);
 
         /* 00000000 */ LONG(0xea000005)                 /* .... : B       &0000001C ; ARM32 entry */
         /* 00000004 */ LONG(0x79766748)                 /* Hgvy : magic 1 */
         /* 00000008 */ LONG(0x216c6776)                 /* vgl! : magic 2 */
-        /* 0000000c */ LONG(_code_size + _rodata_size)  /* .... : Read-only size */
-        /* 00000010 */ LONG(_data_size + _zinit_size)   /* .... : Read-write size */
+        /* 0000000c */ LONG(__ROSize)                   /* .... : Read-only size */
+        /* 00000010 */ LONG(__RWSize)                   /* .... : Read-write size */
         /* 00000014 */ LONG(0x00000040)                 /* @... : Bitness + flags */
         /* 00000018 */ LONG(_entry)                     /* .... : ARM64 entry */
         /* 0000001c */ LONG(0xe28f0004)                 /* .... : ADR     r0, &00000024 */
@@ -36,39 +36,58 @@ SECTIONS
         /* 00000058 */ LONG(0x00534f20)                 /*  OS. :  */
 
         *(.text)
+        *(.text.*)
         . = ALIGN(16);
-        _code_end = ABSOLUTE(.);
-        _code_size = _code_end - _code_start;
+        __CodeEnd = ABSOLUTE(.);
+    } > util
+    __CodeSize = SIZEOF(.text);
 
-        _rodata_start = ABSOLUTE(.);
+    .rodata . : {
+        __RODataStart = ABSOLUTE(.);
         *(.rodata)
         *(.rodata.*)
+        __GOTStart = ABSOLUTE(.);
         *(.got)
+        __GOTEnd = ABSOLUTE(.);
         *(.got.plt)
         . = ALIGN(16);
-        _rodata_end = ABSOLUTE(.);
-        _rodata_size = _rodata_end - _rodata_start;
+        __RODataEnd = ABSOLUTE(.);
+    } > util
 
-        _rodata_plus_code_size = _rodata_size + _code_size;
+    __RODataSize = SIZEOF(.rodata);
+    __ROSize = __RODataSize + __CodeSize;
 
-        _data_start = ABSOLUTE(.);
+    .data . : {
+        __DataStart = ABSOLUTE(.);
+        /* FIXME: We may wish to align to a page boundary here */
         *(.data)
         . = ALIGN(16);
-        _data_end = ABSOLUTE(.);
-        _data_size = _data_end - _data_start;
+    } > util
 
-        /* The zero initialised region */
+    __DataRelStart = ABSOLUTE(.);
+    .data.rel . : {
+        . = ALIGN(16);
+        *(.data.rel)
+        *(.data.rel.*)
+
         . = ALIGN(16);
 
-        _zinit_start = ABSOLUTE(.);
-        *(.bss)
-        *(.bss.*)
-        . = ALIGN(4);
-        LONG(0x0)
-        _zinit_end = ABSOLUTE(.);
-        _zinit_size = _zinit_end - _zinit_start;
-
+        /* The zero initialised region follows */
     } > util
+    __DataEnd = ABSOLUTE(.);
+    __DataRelEnd = ABSOLUTE(.);
+    __DataRelSize = SIZEOF(.data.rel);
+    __DataSize = SIZEOF(.data) + SIZEOF(.data.rel);
+
+    __ZIStart = ABSOLUTE(.);
+    .bss (NOLOAD) : {
+        *(.bss .bss.*)
+        . = ALIGN(16);
+    } > util
+    __ZIEnd = ABSOLUTE(.);
+    __ZISize = SIZEOF(.bss);
+
+    __RWSize = __DataSize + __ZISize;
 
     /* Place the eh_frame and others out of the way - we don't use them yet */
     .eh_frame (NOLOAD) : { *(.eh_frame) }

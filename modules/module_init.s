@@ -21,7 +21,7 @@
 
 modflags:
 .word	0 + (1<<2) + (1<<4) // 32bit NOT supported + zero-init present + AArch64
-.word   _zinit_size         // Size of our Zero initialised area
+.word   __ZISize          // Size of our Zero initialised area
 
 title:
 .asciz "ModuleWithInit"
