@@ -78,7 +78,8 @@ dockcross-linux-arm64:
 
 clean:
 	-rm -rf *.o *.a *.bin *,ff8 *.map riscos_headers/ export/
-	-rm -rf heap/*.o \
+	-rm -rf builtins/*.o \
+			heap/*.o \
 			io/*.o \
 			fs/*.o \
 			kernel/*.o \
@@ -129,6 +130,9 @@ CFLAGS += -Iriscos_headers/C/ -Iriscos_headers/Lib/ -Iriscos_headers/Lib/CLib/ -
 ifeq (${USE_FUNC_SIGNATURE},1)
 CFLAGS += -fpatchable-function-entry=8,8
 endif
+
+# Position independant code allows relocation
+CFLAGS += -fPIC
 
 # Optimisation options
 CFLAGS += -O1

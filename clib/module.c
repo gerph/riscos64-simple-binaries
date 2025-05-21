@@ -14,13 +14,16 @@
 _kernel_oserror *_clib_initialisemodule(void *pwp)
 {
     /* Perform zero-init ? */
+    void __attribute__((weak)) __RelocCode(void);
+    if (__RelocCode)
+        __RelocCode();
     _kernel_inmodule = true;
     return NULL;
 }
 
 _kernel_oserror *_clib_finalisemodule(void *pwp)
 {
-    extern void clib_finalise(void);
+    extern void _clib_finalise(void);
     _clib_finalise();
     return NULL;
 }

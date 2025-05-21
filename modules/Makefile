@@ -14,7 +14,8 @@ TARGET ?= module_init
 
 CROSS_ROOT = ${shell echo $$CROSS_ROOT}
 
-ALL_TARGETS = module_init
+ALL_TARGETS = module_init \
+              module_c
 
 
 
@@ -34,8 +35,6 @@ dockcross-linux-arm64:
 
 clean:
 	-rm -f *.o *.a *.bin *,ffa *.map
-
-CRT_OBJS = 	${CLIBDIR}/libcrt.a
 
 ifeq (${CROSS_ROOT},)
 # If we're outside the docker container, re-run ourselves inside the container
@@ -63,6 +62,9 @@ else
 
 CLIBDIR = /ro64/clib
 
+CRT_OBJS = 	${CLIBDIR}/libcrt.a
+
+
 USE_FUNC_SIGNATURE ?= 1
 
 # Remove the flags that might make code think it's compiling for linux system.
@@ -73,7 +75,6 @@ CFLAGS += -D__riscos -D__riscos64
 
 # Allow us to build without assuming the standard library is present
 CFLAGS += -nostdlib -ffreestanding -march=armv8-a
-#CFLAGS += -nostdlib -ffreestanding -march=armv8-a+nofp
 
 # Add the exports directory to those things we'll build with
 CFLAGS += -I${CLIBDIR}/C -I${CLIBDIR}/Lib/ -I${CLIBDIR}
@@ -83,25 +84,35 @@ ifeq (${USE_FUNC_SIGNATURE},1)
 CFLAGS += -fpatchable-function-entry=10,10
 endif
 
+# Position independant code allows relocation
+CFLAGS += -fPIC
+
 # Optimisation options
 CFLAGS += -O1
 
 # Options for this build
-CFLAGS += 
+CFLAGS +=
 
 # Assembler flags
 AFLAGS = -march=armv8-a -I${CLIBDIR}/
 
 # Flags for the linker
-LDFLAGS = -T link.lnk
+LDFLAGS = -T ${CLIBDIR}/linker/rmf.lnk
 
 CC = aarch64-unknown-linux-gnu-gcc
 AS = aarch64-unknown-linux-gnu-as
 LD = aarch64-unknown-linux-gnu-ld
 AR = aarch64-unknown-linux-gnu-ar
 OBJCOPY = aarch64-unknown-linux-gnu-objcopy
+OBJDUMP = aarch64-unknown-linux-gnu-objdump
+ROSYMBOLS = ${CLIBDIR}/bin/riscos64-addsignatures
+RORELOC = ${CLIBDIR}/bin/riscos64-mkreloc
 
 OBJS =	${TARGET}.o
+
+ifeq (${TARGET},module_c)
+	OBJS += modhead.o
+endif
 
 %.o: %.c
 	${CC} ${CFLAGS} -c -o $@ $?
@@ -109,19 +120,24 @@ OBJS =	${TARGET}.o
 %.o: %.s
 	${AS} ${AFLAGS} -o $@ $?
 
-${TARGET}.bin: link.lnk ${OBJS} ${CRT_OBJS}
-	${LD} ${OBJS} ${CRT_OBJS} ${LDFLAGS} -o $@
+${TARGET}.bin: ${OBJS} ${CRT_OBJS}
+	${LD} -r ${OBJS} ${CRT_OBJS} ${LDFLAGS} -Map map -o $@.tmp
+	${OBJDUMP} --reloc --syms --wide $@.tmp > $@.syms
+	${RORELOC} $@.syms $@.reloc
+	${LD} ${OBJS} $@.reloc ${CRT_OBJS} ${LDFLAGS} -o $@
+	${RM} -f $@.tmp $@.syms $@.reloc
 
-${TARGET}.map: link.lnk ${OBJS} ${CRT_OBJS}
-	${LD} ${OBJS} ${CRT_OBJS} ${LDFLAGS} -Map $@ -o /dev/null
+${TARGET}.syms: ${TARGET}.bin
+	${OBJDUMP} -t $? > $@
 
 ifeq (${USE_FUNC_SIGNATURE},1)
-${TARGET},ffa: ${TARGET}.bin ${TARGET}.map
-	${OBJCOPY} -O binary -j .text ${TARGET}.bin $@
-	python ${CLIBDIR}/bin/riscos_symbols.py ${TARGET}.map $@
+${TARGET},ffa: ${TARGET}.bin ${TARGET}.syms
+	${OBJCOPY} -O binary -j .text -j .rodata -j .data -j .data.rel -j .data.rel ${TARGET}.bin $@
+	python ${ROSYMBOLS} ${TARGET}.syms $@
 else
 ${TARGET},ffa: ${TARGET}.bin
-	${OBJCOPY} -O binary -j .text ${TARGET}.bin $@
+	${OBJCOPY} -O binary -j .text -j .rodata -j .data -j .data.rel -j .data.rel ${TARGET}.bin $@
 endif
+
 
 endif

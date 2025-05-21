@@ -9,7 +9,7 @@
 
 .balign 4
 _aif64_entry:
-        NOP                     // Relocation code (not currently used)
+        BL      __RelocCode     // Relocation code
         BL      _zeroinit       // Zero initialisation
         BL      _start
         MOV     x10, #0x11      // OS_Exit

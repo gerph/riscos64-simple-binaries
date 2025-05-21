@@ -15,7 +15,9 @@ AS=aarch64-unknown-linux-gnu-as
 LD=aarch64-unknown-linux-gnu-ld
 AR=aarch64-unknown-linux-gnu-ar
 OBJCOPY=aarch64-unknown-linux-gnu-objcopy
-ROSYMBOLS=/ro64/clib/bin/riscos_symbols.py
+OBJDUMP=aarch64-unknown-linux-gnu-objdump
+ROSYMBOLS=/ro64/clib/bin/riscos64-addsignatures
+RORELOC=/ro64/clib/bin/riscos64-mkreloc
 
 RO64EXPORT=${RO64EXPORT:-/ro64/clib}
 
@@ -24,6 +26,16 @@ CLIB64=${CLIB64:-$(dirname $0)/..}
 
 # How many parent directories we should use in our mounted directory
 RISCOS64_RELDIRS=${RISCOS64_RELDIRS:-0}
+
+# Whether we're using the 'ld -Map' or 'objdump' symbols method.
+use_ldmap=false
+
+tmp_reloc=${TMPDIR:-/tmp}/ro64reloc.$$
+function cleanup() {
+    local rc=$?
+    rm -f "$tmp_reloc"
+    return $?
+}
 
 function canonicalise() {
     local f=$1
@@ -37,6 +49,8 @@ function canonicalise() {
 }
 
 CLIB64=$(canonicalise "$CLIB64")
+
+libcrt="${RO64EXPORT}/libcrt.a"
 
 
 function riscos_cc() {
@@ -274,7 +288,22 @@ EOM
 }
 
 
-function riscos_link() {
+function riscos64_link_help() {
+    cat <<EOM
+Link ELF files into a binary for RISC OS 64.
+Syntax: $tool <options> <file>*
+Options:
+    -rmf        Create a Relocatable Module File
+    -aif        Create a AIF absolute file
+    -util       Create a Utility file
+    -o <file>   Specify output file (default object, !RunImage, Module, Utility)
+    -T          Override linker script to use
+    -l<file>    Link with library
+    -nostdlib   Do not link with C library (libcrt.a)
+EOM
+}
+
+function riscos64_link() {
     local inargs=("$@")
     local args=()
     local arg
@@ -302,6 +331,10 @@ function riscos_link() {
             fi
             nextarg=''
 
+        elif [[ "$arg" == '-h' || "$arg" == '-help' || "$arg" == '--help' ]] ; then
+            riscos64_link_help
+            exit 0
+
         elif [[ "$arg" == '-rmf' ]] ; then
             # RISC OS specific option
             type=ffa
@@ -320,6 +353,10 @@ function riscos_link() {
         elif [[ "$arg" == '-o' ]] ; then
             # Output isn't added to the linker right now.
             nextarg=output
+            continue
+
+        elif [[ "$arg" == '-nostdlib' ]] ; then
+            libcrt=''
             continue
 
         elif [[ "$arg" == '-T' ]] ; then
@@ -370,7 +407,9 @@ function riscos_link() {
         entry=_util64_header
     fi
 
-    args+=(${RO64EXPORT}/libcrt.a)
+    if [[ "$libcrt" != '' ]] ; then
+        args+=("${libcrt}")
+    fi
 
     if [[ "$linker_script" != '' ]] ; then
         args+=("-T" "$linker_script")
@@ -380,24 +419,65 @@ function riscos_link() {
         args+=('-e' "$entry")
     fi
 
+    if [[ "$output" == '' || "$output" == ",$type" ]] ; then
+        echo "No output filename specified to riscos64-link" >&2
+        riscos64_link_help
+        exit 1
+    fi
+
     if [[ "$type" == 'e1f' ]] ; then
         # If they requested ELF then no further processing is done
         cmds=("$LD" "${args[@]}" "-o" "$output")
     else
         if [[ "$output" =~ ^(.*),([0-9a-f][0-9a-f][0-9a-f])$ ]] ; then
             output_elf="${BASH_REMATCH[1]}.elf"
-            output_map="${BASH_REMATCH[1]}.map"
+            output_syms="${BASH_REMATCH[1]}.syms"
         else
             output_elf="${output}.elf"
-            output_map="${output}.map"
+            output_syms="${output}.syms"
         fi
-        cmds=("$LD" "${args[@]}" "-o" "${output_elf}" \
-              "&&" "$OBJCOPY" "-O" "binary" "-j" ".text" "${output_elf}" "${output}" \
-              "&&" "$ROSYMBOLS" "${output_map}" "${output}")
+        # First we need to know what the relocations within .data.rel will be
+        # Then we generate the table of relocations that can be executed at run time.
+        # And we include both the table of relocations, and the relocation code,
+        # into the final linkage.
+
+        # Extract the list of relocations within .data.rel
+        cmds=("$LD" "${args[@]}" "-r" "-o" "${output_elf}"
+              "&&" "$OBJDUMP" "--reloc" "--syms" "--wide" "${output_elf}" ">" "${output_syms}")
+        if ! bash -x -c "${cmds[*]}" ; then
+            echo "Failed to create intermediate relocations" >&2
+            exit 1
+        fi
+        # The relocations (and symbols they refer to) are now in ${output_syms}
+
+        # We must generate a table of those relocations to include with our relocation code.
+        cmds=("./$RORELOC" "${output_syms}" "-o" "$tmp_reloc")
+        if ! bash -x -c "${cmds[*]}" ; then
+            echo "Failed to create relocation table" >&2
+            exit 1
+        fi
+
+        # Add the relocation code and the table to the inputs
+        args+=("$tmp_reloc")
+
+        # Final linkage with all the symbols and areas resolved
+        if $use_ldmap ; then
+            cmds=("$LD" "${args[@]}" "-Map" "${output_syms}" "-o" "${output_elf}")
+        else
+            cmds=("$LD" "${args[@]}" "-o" "${output_elf}" \
+                  "&&" "$OBJDUMP" "--syms" "--wide" "${output_elf}" ">" "${output_syms}")
+        fi
+        cmds+=("&&" "$OBJCOPY" "-O" "binary" "-j" ".text" "-j" ".rodata" "-j" ".data" "-j" ".data.rel" "${output_elf}" "${output}" \
+               "&&" "chmod" "a-x" "${output_elf}" "${output}" \
+               "&&" "$ROSYMBOLS" "${output_syms}" "${output}")
+        if [[ "$type" != '' && ! $output =~ ,([0-9a-f][0-9a-f][0-9a-f])$ ]] ; then
+            cmds+=("&&" "mv" "${output}" "${output},${type}")
+        fi
     fi
 
     echo "${cmds[*]}"
 }
+
 
 function install() {
     # They want to install the tools into the host environment, so that they can
@@ -513,7 +593,7 @@ case "$cmd" in
         ;;
 
     riscos64-link|link)
-        args=($(riscos_link "${args[@]}"))
+        args=($(riscos64_link "${args[@]}"))
         ;;
 
     riscos64-libfile|libfile)
