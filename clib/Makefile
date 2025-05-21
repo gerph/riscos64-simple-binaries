@@ -78,7 +78,8 @@ dockcross-linux-arm64:
 
 clean:
 	-rm -rf *.o *.a *.bin *,ff8 *.map riscos_headers/ export/
-	-rm -rf heap/*.o \
+	-rm -rf builtins/*.o \
+			heap/*.o \
 			io/*.o \
 			fs/*.o \
 			kernel/*.o \
@@ -129,6 +130,9 @@ CFLAGS += -Iriscos_headers/C/ -Iriscos_headers/Lib/ -Iriscos_headers/Lib/CLib/ -
 ifeq (${USE_FUNC_SIGNATURE},1)
 CFLAGS += -fpatchable-function-entry=8,8
 endif
+
+# Position independant code allows relocation
+CFLAGS += -fPIC
 
 # Optimisation options
 CFLAGS += -O1
@@ -231,6 +235,7 @@ OBJS = 	\
 		io/io-console.o \
 		io/io-file-init.o \
 		io/io-file.o \
+		io/io-fgets.o \
 		io/io-fprintf.o \
 		io/io-printf.o \
 		io/io-sprintf.o \
@@ -246,11 +251,15 @@ OBJS = 	\
 		kernel/kernel-escape.o \
 		kernel/kernel-state.o \
 		kernel/kernel-cli.o \
+		kernel/kernel-system.o \
 		kernel/kernel-unwind-current.o \
 		kernel/kernel-unwind.o \
-		kernel/kernel.o \
+		kernel/kernel-swi.o \
+		kernel/kernel-swix.o \
 		\
 		longjmp.o \
+		env.o \
+		signal.o \
 		main.o \
 		main-exit.o \
 		module.o \
@@ -277,6 +286,7 @@ OBJS = 	\
 		string/strrchr.o \
 		string/strspn.o \
 		string/strstr.o \
+		string/strtok.o \
 		string/strcase.o \
 		\
 		conversion/atoi.o \
@@ -290,6 +300,9 @@ OBJS = 	\
 		time/time-clock.o \
 		time/time-time.o \
 		time/time-gmtime.o \
+		time/time-localtime.o \
+		time/strftime.o \
+		time/asctime.o \
 		\
 		sysvars/sysvars.o \
 		sysvars/sysvars-kernel.o \

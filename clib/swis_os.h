@@ -23,6 +23,7 @@
 #define os_file3 __os_file3
 #define os_fscontrol2 __os_fscontrol2
 #define os_fscontrol3 __os_fscontrol3
+#define os_changeenvironment __os_changeenvironment
 
 
 
@@ -51,7 +52,10 @@ _kernel_oserror *os_module(int moduleop, void *ptr, int size, void **newptr);
 // int os_byte_out1(r0, r1, r2) => r1 value on return
 int os_byte_out1(int r0, int r1, int r2);
 
-/* Using OS_WriteI makes no select really in AArch64 */
+/* Using OS_WriteI makes no sense really in AArch64 */
 #define os_cls() os_writec(12)
+
+_kernel_oserror *os_changeenvironment(int envnumber, intptr_t handler, intptr_t workspace, intptr_t buffer,
+                                      intptr_t *old_handler);
 
 #endif

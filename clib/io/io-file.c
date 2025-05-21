@@ -3,15 +3,7 @@
 #include <string.h>
 #include "swis.h"
 #include "swis_os.h"
-
-
-#define _IO_MAGIC (0x381F0000)
-#define _IO_MAGIC_MASK (0xFFFF0000)
-#define CHECK_MAGIC(fh, fail_code) \
-                        do { \
-                            if ( ((fh)->_flags & _IO_MAGIC_MASK) != _IO_MAGIC ) \
-                                return (fail_code); \
-                        } while (0)
+#include "io/io-internal.h"
 
 extern FILE *__file_list;
 
@@ -285,28 +277,6 @@ int fputc(int c, FILE *fh)
 int putc(int c, FILE *fh)
 {
     return fputc(c, fh);
-}
-
-char *fgets(char *str, int size, FILE *fh)
-{
-    char *p;
-    if (!fh)
-        return NULL;
-
-    CHECK_MAGIC(fh, NULL);
-
-    for (p = str; p - str < size - 1; p++)
-    {
-        int c = fgetc(fh);
-        if (c == -1)
-            return NULL;
-        if (c != '\n')
-            *p = c;
-        else
-            break;
-    }
-    *p = '\0';
-    return p;
 }
 
 int fputs(const char *str, FILE *fh)

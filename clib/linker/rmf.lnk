@@ -1,0 +1,86 @@
+MEMORY
+{
+    /* We build our modules to start at offset 4 to allow for the module heap header */
+    rmf (rwx) : ORIGIN = 0x4, LENGTH = 0x10000000
+}
+
+SECTIONS
+{
+    RMF_BASE = 0x4;
+
+    .text RMF_BASE :
+    {
+        __CodeStart = ABSOLUTE(.);
+
+        KEEP(*(.init.rmf));
+        *(.init.rmf);
+        *(.text)
+        *(.text.*)
+        . = ALIGN(16);
+        __CodeEnd = ABSOLUTE(.);
+    } > rmf
+    __CodeSize = SIZEOF(.text);
+
+    .rodata . : {
+        __RODataStart = ABSOLUTE(.);
+        *(.rodata)
+        *(.rodata.*)
+
+        . = ALIGN(8);
+        __GOTStart = ABSOLUTE(.);
+        *(.got)
+        *(.got.plt)
+        __GOTEnd = ABSOLUTE(.);
+
+        . = ALIGN(16);
+        __RODataEnd = ABSOLUTE(.);
+    } > rmf
+
+    __RODataSize = SIZEOF(.rodata);
+    __ROSize = __RODataSize + __CodeSize;
+
+    .data . : {
+        __DataStart = ABSOLUTE(.);
+        /* FIXME: We may wish to align to a page boundary here */
+        *(.data)
+        . = ALIGN(16);
+    } > rmf
+
+    __DataRelStart = ABSOLUTE(.);
+    .data.rel . : {
+        . = ALIGN(16);
+        *(.data.rel)
+        *(.data.rel.*)
+
+        . = ALIGN(16);
+
+        /* The zero initialised region follows */
+    } > rmf
+    __DataEnd = ABSOLUTE(.);
+    __DataRelEnd = ABSOLUTE(.);
+    __DataRelSize = SIZEOF(.data.rel);
+    __DataSize = SIZEOF(.data) + SIZEOF(.data.rel);
+
+    __ZIStart = ABSOLUTE(.);
+    .bss (NOLOAD) : {
+        *(.bss .bss.*)
+        . = ALIGN(16);
+    } > rmf
+    __ZIEnd = ABSOLUTE(.);
+    __ZISize = SIZEOF(.bss);
+
+    __RWSize = __DataSize + __ZISize;
+
+    /* Place the eh_frame and others out of the way - we don't use them yet */
+    .eh_frame (NOLOAD) : { *(.eh_frame) }
+    .igot (NOLOAD) : { *(.igot.*) }
+    .iplt (NOLOAD) : { *(.iplt) }
+
+    .interp (NOLOAD) : { *(.interp) }
+    .dynsym (NOLOAD) : { *(.dynsym) }
+    .dynstr (NOLOAD) : { *(.dynstr) }
+    .hash (NOLOAD) : { *(.hash) }
+    .gnu.hash (NOLOAD) : { *(.gnu.hash) }
+
+    __patchable_function_entries : { *(__patchable_function_entries) }
+}

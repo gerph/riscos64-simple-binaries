@@ -4,6 +4,7 @@
 #include "swis.h"
 #include "swis_os.h"
 #include "conversion/cvt.h"
+#include "env.h"
 
 void __attribute__ ((__noreturn__))
      __assert_fail (const char *__assertion, const char *__file,
@@ -30,5 +31,8 @@ void __attribute__ ((__noreturn__))
 
     _kernel_backtrace();
 
+    /* Restore the environment so that the OS_GenerateError goes to the caller */
+    _clib_finalise();
+    _env_restore();
     os_generateerror(&err);
 }

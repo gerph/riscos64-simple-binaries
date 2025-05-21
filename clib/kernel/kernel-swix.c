@@ -43,7 +43,7 @@ _kernel_oserror *_swix(int swi_no, uint32_t flags, ...)
 
     for (n=0; n<10; n++)
     {
-        if (flags & (1<<(31-n)))
+        if (flags & (1lu<<(31-n)))
         {
             uint32_t *p = va_arg(args, uint32_t *);
             *p = regs.r[n];
