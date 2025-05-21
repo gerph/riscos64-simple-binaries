@@ -14,7 +14,8 @@ TARGET ?= module_init
 
 CROSS_ROOT = ${shell echo $$CROSS_ROOT}
 
-ALL_TARGETS = module_init
+ALL_TARGETS = module_init \
+              module_c
 
 
 

@@ -6,6 +6,8 @@
 
 _entry:
         STP     x29, x30, [sp, #-16]!
+        MOV     x29, sp
+        BL      __RelocCode
         MOV     x3, x1
 
         MOV     x10, #OS_WriteS
