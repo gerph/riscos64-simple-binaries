@@ -60,10 +60,13 @@ SECTIONS
         __RODataStart = ABSOLUTE(.);
         *(.rodata)
         *(.rodata.*)
+
+        . = ALIGN(8);
         __GOTStart = ABSOLUTE(.);
         *(.got)
-        __GOTEnd = ABSOLUTE(.);
         *(.got.plt)
+        __GOTEnd = ABSOLUTE(.);
+
         . = ALIGN(16);
         __RODataEnd = ABSOLUTE(.);
     } > aif

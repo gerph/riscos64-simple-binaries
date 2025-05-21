@@ -1,12 +1,12 @@
 MEMORY
 {
     /* We build our modules to start at offset 4 to allow for the module heap header */
-    rmf (rwx) : ORIGIN = 0x0, LENGTH = 0x10000000
+    rmf (rwx) : ORIGIN = 0x4, LENGTH = 0x10000000
 }
 
 SECTIONS
 {
-    RMF_BASE = 0x0;
+    RMF_BASE = 0x4;
 
     .text RMF_BASE :
     {
@@ -25,10 +25,13 @@ SECTIONS
         __RODataStart = ABSOLUTE(.);
         *(.rodata)
         *(.rodata.*)
+
+        . = ALIGN(8);
         __GOTStart = ABSOLUTE(.);
         *(.got)
-        __GOTEnd = ABSOLUTE(.);
         *(.got.plt)
+        __GOTEnd = ABSOLUTE(.);
+
         . = ALIGN(16);
         __RODataEnd = ABSOLUTE(.);
     } > rmf

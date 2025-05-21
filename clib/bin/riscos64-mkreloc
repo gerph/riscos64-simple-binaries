@@ -311,7 +311,10 @@ if ($nrelocations > 0)
     append_output("",
                   ".word\t0\t// Table terminator");
 }
-my $got_size = ($symbols{'__GOTStart'} && $symbols{'__GOTEnd'}) ? ($symbols{'__GOTEnd'}->{'address'} - $symbols{'__GOTStart'}->{'address'}) : 0;
+# my $got_size = ($symbols{'__GOTStart'} && $symbols{'__GOTEnd'}) ? ($symbols{'__GOTEnd'}->{'address'} - $symbols{'__GOTStart'}->{'address'}) : 0;
+# FIXME: GOT cannot be optimised out because in the partially linked ELF we don't get a GOT region to decide if we need it.
+#        Maybe we could make this decision based on whether there are any GOT relocations?
+my $got_size = 1;
 
 append_output('.section .text',
               '',

@@ -109,6 +109,10 @@ RORELOC = ${CLIBDIR}/bin/riscos64-mkreloc
 
 OBJS =	${TARGET}.o
 
+ifeq (${TARGET},module_c)
+	OBJS += modhead.o
+endif
+
 %.o: %.c
 	${CC} ${CFLAGS} -c -o $@ $?
 
@@ -116,11 +120,11 @@ OBJS =	${TARGET}.o
 	${AS} ${AFLAGS} -o $@ $?
 
 ${TARGET}.bin: ${OBJS} ${CRT_OBJS}
-	${LD} -r ${OBJS} ${CRT_OBJS} ${LDFLAGS} -o $@.tmp
+	${LD} -r ${OBJS} ${CRT_OBJS} ${LDFLAGS} -Map map -o $@.tmp
 	${OBJDUMP} --reloc --syms --wide $@.tmp > $@.syms
 	${RORELOC} $@.syms $@.reloc
 	${LD} ${OBJS} $@.reloc ${CRT_OBJS} ${LDFLAGS} -o $@
-	${RM} -f $@.tmp $@.symsx $@.reloc
+	${RM} -f $@.tmp $@.syms $@.reloc
 
 ${TARGET}.syms: ${TARGET}.bin
 	${OBJDUMP} -t $? > $@
@@ -133,5 +137,6 @@ else
 ${TARGET},ffa: ${TARGET}.bin
 	${OBJCOPY} -O binary -j .text -j .rodata -j .data -j .data.rel -j .data.rel ${TARGET}.bin $@
 endif
+
 
 endif
