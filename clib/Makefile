@@ -222,6 +222,7 @@ OBJS = 	\
 		ctypes/flags.o \
 		ctypes/lower.o \
 		ctypes/upper.o \
+		ctypes/is.o \
 		\
 		errno.o \
 		\
