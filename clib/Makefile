@@ -82,6 +82,7 @@ clean:
 			heap/*.o \
 			io/*.o \
 			fs/*.o \
+			errno/*.o \
 			kernel/*.o \
 			conversion/*.o \
 			string/*.o \
@@ -224,7 +225,9 @@ OBJS = 	\
 		ctypes/upper.o \
 		ctypes/is.o \
 		\
-		errno.o \
+		errno/errno.o \
+		errno/strerror.o \
+		errno/perror.o \
 		\
 		heap/accumulator.o \
 		heap/osheap.o \
@@ -244,6 +247,7 @@ OBJS = 	\
 		io/sscanf.o \
 		io/stackcheck.o \
 		\
+		fs/fs-errors.o \
 		fs/fs-remove.o \
 		fs/fs-rename.o \
 		fs/fs-tmpnam.o \
@@ -258,11 +262,12 @@ OBJS = 	\
 		kernel/kernel-swi.o \
 		kernel/kernel-swix.o \
 		\
+		atexit.o \
+		clib.o \
 		longjmp.o \
 		env.o \
 		signal.o \
 		main.o \
-		main-exit.o \
 		module.o \
 		malloc.o \
 		\

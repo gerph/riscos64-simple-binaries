@@ -27,7 +27,7 @@ static uint64_t signals_blocked; /* WARNING: Assumes < 64 signals */
  Parameters:    sig = signal number (usually SIGINT)
  Returns:       none
  ******************************************************************/
-void signal_escape(int sig)
+static void signal_escape(int sig)
 {
     /* For simplicity, just raise the escape error */
     static _kernel_oserror err_escape = {17, "Escape"};
@@ -41,7 +41,7 @@ void signal_escape(int sig)
  Parameters:    sig = signal number (usually SIGINT)
  Returns:       none
  ******************************************************************/
-void signal_abort(int sig)
+static void signal_abort(int sig)
 {
     os_write0("Aborted");
     os_newline();
@@ -52,18 +52,26 @@ void signal_abort(int sig)
 }
 
 
-static sig_t handlers[SIGMAX] = {
-    [SIGHUP] = signal_ignore,
-    [SIGINT] = signal_escape,
-    [SIGILL] = signal_ignore,
-    [SIGABRT] = signal_abort,
-};
+static sig_t handlers[SIGMAX];
 static sig_t default_handlers[SIGMAX] = {
     [SIGHUP] = signal_ignore,
     [SIGINT] = signal_escape,
     [SIGILL] = signal_ignore,
     [SIGABRT] = signal_abort,
 };
+
+
+/*************************************************** Gerph *********
+ Function:      __signal_init
+ Description:   Initialise the signal system to its default state
+ Parameters:    none
+ Returns:       none
+ ******************************************************************/
+void __signal_init(void)
+{
+    memcpy(handlers, default_handlers, sizeof(handlers));
+    signals_blocked = 0;
+}
 
 
 /*************************************************** Gerph *********

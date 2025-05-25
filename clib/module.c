@@ -7,7 +7,7 @@
 
 #include <stdlib.h>
 #include "kernel.h"
-#include "main-exit.h"
+#include "clib.h"
 #include "kernel/kernel-state.h"
 
 
@@ -18,6 +18,7 @@ _kernel_oserror *_clib_initialisemodule(void *pwp)
     if (__RelocCode)
         __RelocCode();
     _kernel_inmodule = true;
+    _clib_internalinit();
     return NULL;
 }
 

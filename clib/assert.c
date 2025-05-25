@@ -3,6 +3,7 @@
 #include "kernel.h"
 #include "swis.h"
 #include "swis_os.h"
+#include "clib.h"
 #include "conversion/cvt.h"
 #include "env.h"
 
@@ -35,4 +36,7 @@ void __attribute__ ((__noreturn__))
     _clib_finalise();
     _env_restore();
     os_generateerror(&err);
+
+    /* If we return we must exit properly */
+    _Exit(0);
 }

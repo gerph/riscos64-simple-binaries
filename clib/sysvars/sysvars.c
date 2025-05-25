@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include "swis.h"
 
 #define INITIAL_SIZE (256)
@@ -20,17 +21,27 @@ extern int __envstringlen;
 
 char *getenv(const char *var)
 {
-    _kernel_oserror *err;
+    if (var == NULL)
+    {
+        errno = EINVAL;
+        return NULL;
+    }
+
     if (__envstring == NULL)
     {
         __envstring = malloc(INITIAL_SIZE);
         if (__envstring == NULL)
+        {
+            errno = ENOMEM;
             return NULL; /* Not enough space, so give up now */
+        }
         __envstringlen = INITIAL_SIZE;
     }
 
     while (1)
     {
+        _kernel_oserror *err;
+
         int wrote;
         err = _swix(OS_ReadVarVal, _INR(0,4)|_OUT(2), var, __envstring, __envstringlen, 0, 3, &wrote);
         if (err == NULL)
@@ -41,6 +52,7 @@ char *getenv(const char *var)
         if (err->errnum != ErrorNumber_BuffOverflow)
         {
             /* We couldn't find the variable, or something else bad; give up */
+            errno = 0; /* Explicitly clear the error to be clear that this isn't a failure */
             return NULL;
         }
 

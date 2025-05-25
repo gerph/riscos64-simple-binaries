@@ -2,9 +2,8 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include "kernel.h"
+#include "kernel-state.h"
 #include "swis.h"
-
-_kernel_oserror *_last_error;
 
 _kernel_oserror *_kernel_last_oserror(void)
 {

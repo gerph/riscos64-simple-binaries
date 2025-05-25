@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
+#include <errno.h>
 
 #include "kernel.h"
 
@@ -44,7 +45,10 @@ char *tmpnam(char *name)
       int sig = clock() ^ counter++;
       /* JRF: Return NULL if we cannot generate a temporary filename. */
       if (!_sys_tmpnam_(name, sig))
+      {
+        errno = ENOENT;
         return NULL;
+      }
     } while (_kernel_osfile(17, name, NULL) != 0);
 
     return name;
