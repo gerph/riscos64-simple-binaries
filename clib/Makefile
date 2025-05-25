@@ -244,6 +244,7 @@ OBJS = 	\
 		io/sscanf.o \
 		io/stackcheck.o \
 		\
+		fs/fs-errors.o \
 		fs/fs-remove.o \
 		fs/fs-rename.o \
 		fs/fs-tmpnam.o \

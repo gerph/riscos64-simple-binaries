@@ -4,6 +4,8 @@
 #include "swis.h"
 #include "swis_os.h"
 #include "io/io-internal.h"
+#include "fs/fs-errors.h"
+#include <errno.h>
 
 extern FILE *__file_list;
 
@@ -29,13 +31,18 @@ FILE *fopen(const char *filename, const char *mode)
 
     FILE *fh = malloc(sizeof(*fh));
     if (fh == NULL)
+    {
+        errno = ENOMEM;
         return NULL;
+    }
 
     _kernel_oserror *err;
     int32_t _fileno;
     err = _swix(OS_Find, _INR(0, 1) | _OUT(0), reason, filename, &_fileno);
     if (err)
     {
+        __fs_seterrno(err);
+
         free(fh);
         return NULL;
     }
@@ -78,6 +85,7 @@ int fclose(FILE *fh)
         }
         return 0;
     }
+    errno = EBADF;
     return -1;
 }
 
@@ -99,7 +107,10 @@ int fseek(FILE *fh, long int pos, int whence)
             size_t cur = 0;
             err = _swix(OS_Args, _INR(0, 1)|_OUT(2), 0, fh->_fileno, &cur);
             if (err)
+            {
+                __fs_seterrno(err);
                 return -1;
+            }
             pos += cur;
             break;
 
@@ -107,11 +118,19 @@ int fseek(FILE *fh, long int pos, int whence)
             size_t ext = 0;
             err = _swix(OS_Args, _INR(0, 1)|_OUT(2), 2, fh->_fileno, &ext);
             if (err)
+            {
+                __fs_seterrno(err);
                 return -1;
+            }
             pos += ext;
             break;
     }
-    _swix(OS_Args, _INR(0, 2), 1, fh->_fileno, pos);
+    err = _swix(OS_Args, _INR(0, 2), 1, fh->_fileno, pos);
+    if (err)
+    {
+        __fs_seterrno(err);
+        return -1;
+    }
     return pos;
 }
 
@@ -129,7 +148,10 @@ long int ftell(FILE *fh)
     size_t cur = 0;
     err = _swix(OS_Args, _INR(0, 1)|_OUT(2), 0, fh->_fileno, &cur);
     if (err)
+    {
+        __fs_seterrno(err);
         return -1;
+    }
 
     return cur;
 }
@@ -146,7 +168,10 @@ int feof(FILE *fh)
 
     err = _swix(OS_Args, _INR(0, 1)|_OUT(2), 5, fh->_fileno, &at_eof);
     if (err)
+    {
+        __fs_seterrno(err);
         return 1; /* Error, so return EOF */
+    }
     return at_eof ? 1 : 0;
 }
 
@@ -155,7 +180,7 @@ size_t fread(void *ptr, size_t size, size_t nitems, FILE *fh)
 {
     _kernel_oserror *err;
     if (!fh)
-        return -1;
+        return 0;
     if (fh == stdin)
     {
         if (size == 1 && nitems == 1)
@@ -174,7 +199,7 @@ size_t fread(void *ptr, size_t size, size_t nitems, FILE *fh)
     size_t not_transferred = 0;
     err = _swix(OS_GBPB, _INR(0, 3)|_OUT(3), 4, fh->_fileno, ptr, transfer, &not_transferred);
     if (err)
-        return -1;
+        return 0;
 
     return transfer - not_transferred;
 }
@@ -213,7 +238,10 @@ size_t fwrite(const void *ptr, size_t size, size_t nitems, FILE *fh)
     size_t not_transferred = 0;
     err = _swix(OS_GBPB, _INR(0, 3)|_OUT(3), 2, fh->_fileno, ptr, transfer, &not_transferred);
     if (err)
+    {
+        __fs_seterrno(err);
         return -1;
+    }
 
     return transfer - not_transferred;
 }
@@ -232,7 +260,10 @@ int fgetc(FILE *fh)
     err = _swix(OS_BGet, _IN(1)|_OUT(0), fh->_fileno, &c);
     /* FIXME: Doesn't check for EOF */
     if (err)
+    {
+        __fs_seterrno(err);
         return -1;
+    }
 
     return c;
 }
@@ -269,7 +300,10 @@ int fputc(int c, FILE *fh)
 
     err = _swix(OS_BPut, _INR(0, 1), c, fh->_fileno);
     if (err)
+    {
+        __fs_seterrno(err);
         return -1;
+    }
 
     return c;
 }
