@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 
 #include "swis.h"
 #include "swis_os.h"
@@ -116,6 +117,7 @@ void *malloc (size_t size)
     __heap_alloc_failed(size);
 #else
     dprintf("%p\n", NULL);
+    errno = ENOMEM;
     return NULL;
 #endif
 }
@@ -139,7 +141,9 @@ void free(void *block)
     {
         /* Free through OS_Module */
         _kernel_oserror *err = os_module(7, block, 0, NULL);
-        /* Cannot do anything with the error */
+        /* Cannot do anything with the error except flag it */
+        if (err)
+            errno = ENOMEM;
         return;
     }
 
@@ -194,6 +198,7 @@ void *realloc(void *block, size_t size)
 
     if (allocated == NULL)
     {
+        errno = ENOMEM;
 #ifdef HEAP_FAIL_IS_FATAL
         __heap_alloc_failed(size);
 #endif

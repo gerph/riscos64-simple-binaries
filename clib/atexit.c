@@ -2,12 +2,6 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "main-exit.h"
-#include "heap/init.h"
-#include "io/io-file-init.h"
-#include "sysvars/sysvars-init.h"
-#include "swis_os.h"
-
 /* Define this to make the atexit() handlers go on the heap, rather than zero-init */
 //#define ATEXIT_HANDLERS_ON_HEAP
 
@@ -50,7 +44,7 @@ int atexit(atexit_func_t func)
     return -1;
 }
 
-void _clib_finalise(void)
+void __atexit_trigger(void)
 {
     atexit_func_t *funcsp = atexit_funcs;
     int i;
@@ -74,16 +68,4 @@ void _clib_finalise(void)
         funcsp = NULL;
 #endif
     }
-
-    /* Shut down our modules */
-    __getenv_final();
-    __io_final();
-    // __heap_final();
-}
-
-void __attribute__((noreturn)) exit(int rc)
-{
-    _clib_finalise();
-
-    _Exit(rc);
 }

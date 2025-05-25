@@ -258,11 +258,12 @@ OBJS = 	\
 		kernel/kernel-swi.o \
 		kernel/kernel-swix.o \
 		\
+		atexit.o \
+		clib.o \
 		longjmp.o \
 		env.o \
 		signal.o \
 		main.o \
-		main-exit.o \
 		module.o \
 		malloc.o \
 		\

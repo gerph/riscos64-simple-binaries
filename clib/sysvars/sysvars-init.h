@@ -11,6 +11,7 @@
 extern char *__envstring;
 extern int __envstringlen;
 
+void __getenv_init(void);
 void __getenv_final(void);
 
 #endif

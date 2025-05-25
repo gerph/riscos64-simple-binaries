@@ -2,8 +2,9 @@
 #include <string.h>
 #include <stdint.h>
 
+#include "clib.h"
+#include "kernel/kernel-state.h"
 #include "heap/init.h"
-#include "time/time-clock.h"
 #include "swis_os.h"
 #include "env.h"
 
@@ -63,8 +64,11 @@ int __main(const char *cli,
     {
         __main_fail("Not enough memory for heap");
     }
+    _kernel_inmodule = false;
     __heap_init(append, (void*)stack_limit);
-    __clock_init();
+
+    /* Initialise all our libraries now that we safely have a heap */
+    _clib_internalinit();
 
     /**** Build argv ****/
 

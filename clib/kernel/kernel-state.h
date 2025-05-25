@@ -9,7 +9,17 @@
 #define KERNEL_STATE_H
 
 #include <stdbool.h>
+#include "kernel.h"
 
-extern bool _kernel_inmodule; /* FIXME: This probably shouldn't be here */
+extern bool _kernel_inmodule;
+extern _kernel_oserror *_last_error;
+
+/*************************************************** Gerph *********
+ Function:      _kernel_init
+ Description:   Initialise the kernel state
+ Parameters:    none
+ Returns:       none
+ ******************************************************************/
+void _kernel_init(void);
 
 #endif

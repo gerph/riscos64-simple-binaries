@@ -8,9 +8,11 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <stdbool.h>
 #include "kernel.h"
 #include "env.h"
 #include "swis_os.h"
+#include "clib.h"
 
 #include "envnumbers.h"
 
@@ -83,6 +85,7 @@ static riscos_error_buffer_t error_buffer;
 
 #define ENV_READ ((intptr_t)0)
 
+static bool env_initialised = false;
 
 /*************************************************** Gerph *********
  Function:      _env_escape
@@ -135,6 +138,7 @@ void _env_exit(_kernel_oserror *err)
  ******************************************************************/
 void _env_init(void)
 {
+    env_initialised = true;
     os_changeenvironment(MemoryLimit,
                          ENV_READ, ENV_READ, ENV_READ,
                          &oldhandlers.memory_limit);
@@ -192,6 +196,9 @@ void _env_init(void)
  ******************************************************************/
 void _env_restore(void)
 {
+    if (!env_initialised)
+        return;
+    env_initialised = false;
     os_changeenvironment(MemoryLimit,
                          oldhandlers.memory_limit,
                          oldhandlers.memory_unused_r2,
