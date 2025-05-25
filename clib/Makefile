@@ -82,6 +82,7 @@ clean:
 			heap/*.o \
 			io/*.o \
 			fs/*.o \
+			errno/*.o \
 			kernel/*.o \
 			conversion/*.o \
 			string/*.o \
@@ -224,7 +225,9 @@ OBJS = 	\
 		ctypes/upper.o \
 		ctypes/is.o \
 		\
-		errno.o \
+		errno/errno.o \
+		errno/strerror.o \
+		errno/perror.o \
 		\
 		heap/accumulator.o \
 		heap/osheap.o \

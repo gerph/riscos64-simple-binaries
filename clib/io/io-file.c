@@ -95,7 +95,10 @@ int fseek(FILE *fh, long int pos, int whence)
     _kernel_oserror *err;
     size_t size = 0;
     if (!fh)
+    {
+        errno = EBADF;
         return -1;
+    }
 
     CHECK_MAGIC(fh, -1);
     switch (whence)
@@ -139,7 +142,10 @@ long int ftell(FILE *fh)
 {
     _kernel_oserror *err;
     if (!fh)
+    {
+        errno = EBADF;
         return -1;
+    }
     if (fh == stdin || fh == stdout || fh == stderr)
         return -1;
 
@@ -162,7 +168,10 @@ int feof(FILE *fh)
     int32_t at_eof;
     _kernel_oserror *err;
     if (!fh)
+    {
+        errno = EBADF;
         return -1;
+    }
 
     CHECK_MAGIC(fh, -1);
 
@@ -209,7 +218,10 @@ size_t fwrite(const void *ptr, size_t size, size_t nitems, FILE *fh)
 {
     _kernel_oserror *err;
     if (!fh)
+    {
+        errno = EBADF;
         return -1;
+    }
     if (size == 0 || nitems == 0)
         return 0;
     if (fh == stdout || fh == stderr)
@@ -251,7 +263,10 @@ int fgetc(FILE *fh)
     int32_t c;
     _kernel_oserror *err;
     if (!fh)
+    {
+        errno = EBADF;
         return -1;
+    }
     if (fh == stdin)
         return os_readc();
 
@@ -270,6 +285,14 @@ int fgetc(FILE *fh)
 
 int fflush(FILE *fh)
 {
+    if (!fh)
+    {
+        errno = EBADF;
+        return -1;
+    }
+    if (fh == stdin || fh == stdout || fh == stderr)
+        return 0;
+
     CHECK_MAGIC(fh, -1);
 
     /* FIXME: Could call the flush OS_Args call */
@@ -286,7 +309,10 @@ int fputc(int c, FILE *fh)
 {
     _kernel_oserror *err;
     if (!fh)
+    {
+        errno = EBADF;
         return -1;
+    }
     if (fh == stdout || fh == stderr)
     {
         if (c == '\n')
@@ -316,7 +342,10 @@ int putc(int c, FILE *fh)
 int fputs(const char *str, FILE *fh)
 {
     if (!fh)
+    {
+        errno = EBADF;
         return -1;
+    }
 
     int len = strlen(str ? str : "<NULL>");
 
@@ -326,7 +355,10 @@ int fputs(const char *str, FILE *fh)
 int fileno(FILE *fh)
 {
     if (!fh)
+    {
+        errno = EBADF;
         return -1;
+    }
 
     if (fh == stdin || fh == stdout || fh == stderr)
         return -2;
