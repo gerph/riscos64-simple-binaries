@@ -37,35 +37,35 @@ functions = {}
 map_type = 'unknown'
 
 # Read the symbols from the map file
-with open(map_file, "r") as fh:
+with open(map_file, "rb") as fh:
     for line in fh:
         line = line.rstrip()
         if map_type == 'unknown':
-            if line.startswith('Archive member included to satisfy reference') or line == 'Memory Configuration':
+            if line.startswith(b'Archive member included to satisfy reference') or line == b'Memory Configuration':
                 map_type = 'linker-map'
-            elif line == 'SYMBOL TABLE:':
+            elif line == b'SYMBOL TABLE:':
                 map_type = 'objdump-symbols'
 
         elif map_type == 'linker-map':
-            if line.startswith('Linker script and memory map'):
+            if line.startswith(b'Linker script and memory map'):
                 in_memory_map = True
-            elif line.startswith('OUTPUT'):
+            elif line.startswith(b'OUTPUT'):
                 in_memory_map = False
             elif in_memory_map:
-                if line.startswith(' .text'):
+                if line.startswith(b' .text'):
                     in_text = True
                     line = '      ' + line[6:]
 
-                elif line.startswith((' .data', ' .rodata')):
+                elif line.startswith((b' .data', b' .rodata')):
                     in_text = False
 
                 if in_text:
-                    if line.startswith('                0x'):
+                    if line.startswith(b'                0x'):
                         # Possibly one of our lines
                         line = line[16:]
                         addr = int(line[0:18], 16)
                         line = line[18:]
-                        if line.startswith('                '):
+                        if line.startswith(b'                '):
                             # Looks good; probably the function left
                             func = line[16:]
                             if ' ' not in func and len(func) < max_func_len:
@@ -74,7 +74,7 @@ with open(map_file, "r") as fh:
 
                 elif base_address is None:
                     # Not in text but we're in the memory map
-                    if line.startswith('                0x'):
+                    if line.startswith(b'                0x'):
                         # This is our first address
                         line = line[16:]
                         base_address = int(line[0:18], 16)
@@ -85,30 +85,31 @@ with open(map_file, "r") as fh:
                 address = line[0:16]
                 flags = line[17:25]
                 tail = line[25:]
-                if '\t' not in tail:
+                if b'\t' not in tail:
                     print("Unrecognised line: '%s'" % (line,))
                     continue
-                (region, tail) = tail.split('\t', 1)
+                (region, tail) = tail.split(b'\t', 1)
                 if debug:
-                    print("Flags: '%s', Region: '%s', tail: '%s'" % (flags, region, tail))
-                if ' ' not in tail:
+                    print("Flags: '%s', Region: '%s', tail: '%s'" % (flags.decode('iso-8859-1'), region.decode('iso-8859-1'), tail.decode('iso-8859-1')))
+                if b' ' not in tail:
                     # Entry without a symbol name
                     #print("Unrecognised line: '%s'" % (line,))
                     continue
-                (size, symbol) = tail.split(' ', 1)
+                (size, symbol) = tail.split(b' ', 1)
                 try:
                     address = int(address, 16)
                     size = int(size, 16)
 
-                    if 'F' in flags and region.startswith('.text'):
+                    if b'F' in flags and region.startswith(b'.text'):
                         # This is a function symbol in the code
                         functions[address] = symbol
 
-                    if 'g' in flags and region == '*ABS*' and 'f' not in flags:
+                    if region == b'.text' and symbol == b'.text' and b'f' not in flags:
                         if base_address is None or base_address > address:
                             base_address = address
-                except ValueError:
+                except ValueError as exc:
                     # Not an address line
+                    print("Not an address line: %s" % (exc,))
                     pass
 
 # Read the binary file
@@ -118,8 +119,12 @@ with open(bin_file, "rb") as fh:
 nop = 0xd503201f
 nop_bytes = struct.pack('<L', nop)
 
+if debug:
+    print("Patching %i symbols in file '%s', base address &%x" % (len(functions), bin_file, base_address))
+
 # Process each of our symbols into the file
 for addr, symbol in sorted(functions.items()):
+    symbol_name = symbol.decode('iso-8859-1')
     symbol_len = (len(symbol) + 4) & ~3
     space_needed = 4 + symbol_len
     symbol_start = addr - base_address - space_needed
@@ -131,7 +136,7 @@ for addr, symbol in sorted(functions.items()):
     else:
         if currently == nop_bytes * int(space_needed / 4):
             if debug:
-                print("Symbol '%s' can be patched at address &%08x" % (symbol, addr))
+                print("Symbol '%s' can be patched at address &%08x" % (symbol_name, addr))
             pre = bin_data[:symbol_start]
             post = bin_data[symbol_start + space_needed:]
             try:
@@ -142,11 +147,13 @@ for addr, symbol in sorted(functions.items()):
                 patch += b'\0'
             patch += bytearray([symbol_len, 0,0,255])
             bin_data = pre + patch + post
+            if len(patch) != len(currently):
+                exit("Internal consistency error: patch %r is not the same length as replaced %r" % (patch, currently))
         else:
-            print("Warning: Failed to patch symbol name in '%s'" % (symbol,))
+            print("Warning: Failed to patch symbol name '%s' at &%x" % (symbol_name, addr))
             if debug:
                 print("  Currently: %r" % (currently,))
-                print("  Need:      %r" % (nop_bytes * (space_needed / 4),))
+                print("  Need:      %r" % (nop_bytes * int(space_needed / 4),))
 
 
 with open(bin_file, "wb") as fh:
