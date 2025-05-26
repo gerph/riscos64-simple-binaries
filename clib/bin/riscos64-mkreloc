@@ -261,7 +261,7 @@ while (<$ifh>)
             {
                 $valuesym = $1;
             }
-            elsif ($value =~ /^(\.[a-zA-Z_][a-zA-Z_0-9]*)\+0x([A-Fa-f0-9]{16})$/)
+            elsif ($value =~ /^(\.[a-zA-Z_][a-zA-Z_0-9\.]*)\+0x([A-Fa-f0-9]{16})$/)
             {
                 $valuesym = $1;
                 $valueoffset = hex($2);
@@ -312,6 +312,9 @@ while (<$ifh>)
                 print STDERR "Unsupported relocation type for section '$section' in relocation '$_'\n";
                 exit(1);
             }
+
+            # Replace section relative symbols with defined symbols from the linker file
+            $valuesym = '__DataRelStart' if ($valuesym eq '.data.rel');
 
             append_output(".word\t$reloctabletype\t// Patch type (for section $section)",
                           ".dword\t$section_symbol + $section_offset\t// File offset to patch",
