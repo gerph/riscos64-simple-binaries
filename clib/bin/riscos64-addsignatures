@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python
 """
 Poke RISC OS style function names into the binary.
 
@@ -18,6 +18,9 @@ import sys
 import struct
 
 debug = False
+
+if len(sys.argv) < 3:
+    exit("Syntax: riscos64-addsignatures <map/syms file> <binary>")
 
 map_file = sys.argv[1]
 bin_file = sys.argv[2]

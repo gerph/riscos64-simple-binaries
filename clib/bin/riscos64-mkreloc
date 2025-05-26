@@ -1,4 +1,4 @@
-#!/bin/env perl
+#!/usr/bin/env perl
 ##
 # Generate a relocation table which can be used at runtime.
 #
@@ -161,6 +161,11 @@ while (my $arg = shift)
             exit(1);
         }
     }
+}
+
+if (!defined $relocfile || !defined $output)
+{
+    die "Syntax: riscos64-mkreloc <symbols> <binary>\n";
 }
 
 my $inreloc_section;
