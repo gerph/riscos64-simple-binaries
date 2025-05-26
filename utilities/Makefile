@@ -123,7 +123,7 @@ ${TARGET}.bin: ${OBJS} ${CRT_OBJS}
 	${OBJDUMP} --reloc --syms --wide $@.tmp > $@.syms
 	${RORELOC} $@.syms $@.reloc
 	${LD} ${OBJS} $@.reloc ${CRT_OBJS} ${LDFLAGS} -o $@
-	${RM} -f $@.tmp $@.syms $@.reloc
+	${RM} $@.tmp $@.syms $@.reloc
 
 ${TARGET}.syms: ${TARGET}.bin
 	${OBJDUMP} -t $? > $@
