@@ -14,7 +14,7 @@ static int str_writen(outputter_t *out, const char *str, size_t len)
 {
     outputterstr_t *outs = (outputterstr_t *)out;
     //printf("str_writen : writing %p (len %i) to %p (left = %i)\n", str, len, outs->p, outs->left);
-    if (outs->left < len)
+    if (outs->left < (int)len)
     {
         /* This would exceed the buffer size */
         if (outs->left <= 0)
