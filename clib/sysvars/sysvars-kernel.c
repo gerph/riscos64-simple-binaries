@@ -12,7 +12,12 @@
 _kernel_oserror *_kernel_setenv(const char *var, const char *val)
 {
     _kernel_oserror *err;
-    err = _swix(OS_SetVarVal, _INR(0,4), var, val, strlen(val), 0, 4);
+    int len;
+    if (val == NULL)
+        len = -1;
+    else
+        len = strlen(val);
+    err = _swix(OS_SetVarVal, _INR(0,4), var, val, len, 0, 4);
     return err;
 }
 
