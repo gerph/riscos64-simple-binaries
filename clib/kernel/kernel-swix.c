@@ -38,7 +38,7 @@ _kernel_oserror *_swix(int swi_no, uint32_t flags, ...)
     }
     err = _kernel_swi(swi_no, &regs, &regs);
     if (err)
-        _last_error = err;
+        _kernel_copyerror(err);
 
     for (n=0; n<10; n++)
     {

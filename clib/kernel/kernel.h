@@ -25,11 +25,35 @@ _kernel_oserror *_kernel_last_oserror(void);
 
 int _kernel_escape_seen(void);
 
-_kernel_oserror *_kernel_setenv(const char *var, const char *val);
+_kernel_oserror *_kernel_setenv(const char *var, const char *val); /* Use NULL to delete */
 _kernel_oserror *_kernel_getenv(const char *var, char *buf, unsigned size);
 
 int _kernel_osfile(int op, const char *name, _kernel_osfile_block *inout);
 
+
+/*************************************************** Gerph *********
+ Function:      _kernel_hostos
+ Description:   Report the host OS (OS_Byte 0, 1)
+ Parameters:    none
+ Returns:       6 for RISC OS (https://beebwiki.mdfs.net/OSBYTE_%2600)
+ ******************************************************************/
+int _kernel_hostos(void);
+
+/*************************************************** Gerph *********
+ Function:      _kernel_osrdch
+ Description:   OS_ReadC
+ Parameters:    none
+ Returns:       character, or -1 if error, or -27 if escape
+ ******************************************************************/
+int _kernel_osrdch(void);
+
+/*************************************************** Gerph *********
+ Function:      _kernel_oswrch
+ Description:   OS_WriteC
+ Parameters:    character
+ Returns:       -2 if failure, 0 if success
+ ******************************************************************/
+int _kernel_oswrch(int c);
 
 /*************************************************** Gerph *********
  Function:      _kernel_backtrace

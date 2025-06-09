@@ -14,6 +14,9 @@
 extern bool _kernel_inmodule;
 extern _kernel_oserror *_last_error;
 
+/* Our error copy */
+#define _kernel_copyerror(err) _last_error = (err)
+
 /*************************************************** Gerph *********
  Function:      _kernel_init
  Description:   Initialise the kernel state

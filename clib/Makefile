@@ -261,6 +261,9 @@ OBJS = 	\
 		kernel/kernel-unwind.o \
 		kernel/kernel-swi.o \
 		kernel/kernel-swix.o \
+		kernel/kernel-hostos.o \
+		kernel/kernel-osrdch.o \
+		kernel/kernel-oswrch.o \
 		\
 		atexit.o \
 		clib.o \
