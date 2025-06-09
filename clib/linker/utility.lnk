@@ -9,6 +9,7 @@ SECTIONS
 
     .text UTIL_BASE :
     {
+        _util64_header = .;
         __CodeStart = ABSOLUTE(.);
 
         /* 00000000 */ LONG(0xea000005)                 /* .... : B       &0000001C ; ARM32 entry */

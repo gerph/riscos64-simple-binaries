@@ -10,7 +10,7 @@ SECTIONS
     .text AIF_BASE :
     {
 /*        . = AIF_BASE; */
-        _code_start = ABSOLUTE(.);
+        __CodeStart = ABSOLUTE(.);
         /* 00000000 */ LONG(0xe1a00000) /* MOV     r0, r0 */
         /* 00000004 */ LONG(0xe1a00000) /* MOV     r0, r0 */
         /* 00000008 */ LONG(0xe1a00000) /* MOV     r0, r0 */
