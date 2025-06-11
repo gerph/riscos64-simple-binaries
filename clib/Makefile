@@ -293,6 +293,7 @@ OBJS = 	\
 		string/strncmp.o \
 		string/strncpy.o \
 		string/strrchr.o \
+		string/strpbrk.o \
 		string/strspn.o \
 		string/strstr.o \
 		string/strtok.o \

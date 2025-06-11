@@ -84,6 +84,7 @@ __os_inkey_escape:
     MOV     x10, #0x2                   // OS_Write0
     ORR     x10, x10, #0x20000
     SVC     #0
+    CSEL    x0, x0, xzr, VS
     LDP     x29, x30, [sp], #16
     RET
 
@@ -93,6 +94,7 @@ __os_inkey_escape:
     MOV     x10, #0x46                  // OS_WriteN
     ORR     x10, x10, #0x20000
     SVC     #0
+    CSEL    x0, x0, xzr, VS
     LDP     x29, x30, [sp], #16
     RET
 
@@ -102,6 +104,7 @@ __os_inkey_escape:
     MOV     x10, #0x3                   // OS_NewLine
     ORR     x10, x10, #0x20000
     SVC     #0
+    CSEL    x0, x0, xzr, VS
     LDP     x29, x30, [sp], #16
     RET
 

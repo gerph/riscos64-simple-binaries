@@ -35,9 +35,9 @@ void draw_fill(int32_t *path, uint32_t style, int32_t *matrix, int32_t flatness)
 void os_setcolour(uint32_t flags, uint32_t gcol);
 _kernel_oserror *os_word(int32_t op, char reason, char *data);
 int os_inkey(int32_t value);
-void os_write0(const char *str);
-void os_writen(const char *str, int n);
-void os_newline(void);
+_kernel_oserror *os_write0(const char *str);
+_kernel_oserror *os_writen(const char *str, int n);
+_kernel_oserror *os_newline(void);
 void os_generateerror(_kernel_oserror *err) __attribute__ ((__noreturn__));
 int os_readescapestate(void);
 _kernel_oserror *os_file2(int op, const char *filename);
