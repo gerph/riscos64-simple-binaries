@@ -9,15 +9,23 @@
  */
 #define USE_ARRAY
 
+/* Use filter is a fast reject that we can use on each character to check if
+ * it could be a terminator, before we check explicitly with each bitmap.
+ */
+//#define USE_FILTER
+
 char *strpbrk(const char *s, const char *charset)
 {
 #ifdef USE_ARRAY
-    uint64_t terms[4] = {0};
+    uint64_t terms[4] = {1,0,0,0};
 #else
-    uint64_t terms0 = 0;
+    uint64_t terms0 = 1;
     uint64_t terms1 = 0;
     uint64_t terms2 = 0;
     uint64_t terms3 = 0;
+#ifdef USE_FILTER
+    uint64_t termsfilter;
+#endif
 #endif
     uint8_t c;
 
@@ -32,27 +40,38 @@ char *strpbrk(const char *s, const char *charset)
     {
         c = (uint8_t)*charset;
 #ifdef USE_ARRAY
-        terms[c>>6] |= (1<< (c & 63));
+        terms[c>>6] |= (1u<< (c & 63));
 #else
         switch (c>>6)
         {
-            case 0: terms0 |= (1<< (c & 63)); break;
-            case 1: terms1 |= (1<< (c & 63)); break;
-            case 2: terms2 |= (1<< (c & 63)); break;
-            default: terms3 |= (1<< (c & 63)); break;
+            case 0: terms0 |= (1u<< (c & 63)); break;
+            case 1: terms1 |= (1u<< (c & 63)); break;
+            case 2: terms2 |= (1u<< (c & 63)); break;
+            default: terms3 |= (1u<< (c & 63)); break;
         }
 #endif
     }
+#ifdef USE_FILTER
+    termsfilter = terms0 | terms1 | terms2 | terms3;
+#endif
 
-    while ((c=(uint8_t)*s++) != '\0')
+    while (1)
     {
+        c=(uint8_t)*s++;
 #ifdef USE_ARRAY
-        if ((terms[c>>6] >> (c & 63)))
+        if ((terms[c>>6] >> (c & 63)) & 1)
         {
             /* This is a terminator, so return the pointer */
             return s - 1;
         }
 #else
+#ifdef USE_FILTER
+        if ((termsfilter>>(c & 63)) & 1)
+            goto check;
+
+        continue;
+check:
+#endif
         uint64_t terms = 0;
         int chunk = (c>>6);
         if (chunk == 0)
@@ -66,8 +85,12 @@ char *strpbrk(const char *s, const char *charset)
             else if (chunk > 2)
                 terms = terms3;
         }
-        if (terms & (1<< (c & 63)))
+        if ((terms>>(c & 63)) & 1)
+        {
+            if (c==0)
+                return NULL;
             return s - 1;
+        }
 #endif
     }
     return NULL;
