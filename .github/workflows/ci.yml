@@ -24,6 +24,8 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     outputs:
       version: ${{ steps.version.outputs.version }}
@@ -88,9 +90,45 @@ jobs:
           name: RISCOS64-clib
           path: ${{ steps.version.outputs.leafname_lib }}
 
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: read
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      - name: Download built RISC OS 64 binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: RISCOS64-binaries
+
+      - name: Extract RISC OS 64 binaries
+        run: |
+          unzip "${{ needs.build.outputs.leafname_bin }}"
+
+      - name: Obtain prerequisite build tool
+        run: |
+          # Fetch the build client
+          curl -s -L -o riscos-build-online https://github.com/gerph/robuild-client/releases/download/v0.06/riscos-build-online && chmod +x riscos-build-online
+
+      - name: Archive files to send
+        run: |
+          # Zip up the source to send to robuild
+          zip -9r /tmp/source-archive.zip absolutes/*,ff8 utilities/*,ffc modules/*,ffa .robuild.yaml
+
+      - name: Build through build.riscos.online
+        run: |
+          # Send the archive file to build service (timeout of 60 seconds)
+          ./riscos-build-online -i /tmp/source-archive.zip -A aarch64 -a off -t 60 -o /tmp/built
+
   # The release only triggers when the thing that was pushed was a tag starting with 'v'
   release:
-    needs: build
+    needs:
+      - build
+      - test
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:

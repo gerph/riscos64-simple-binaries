@@ -1,0 +1,41 @@
+%YAML 1.0
+---
+
+# Defines a list of jobs which will be performed.
+# Only 1 job will currently be executed.
+jobs:
+  build:
+    # Env defines system variables which will be used within the environment.
+    # Multiple variables may be assigned.
+    env:
+      "Sys$Environment": ROBuild
+
+    # Directory to change to before running script
+    #dir: <working directory>
+
+    # Commands which should be executed to perform the build.
+    # The build will terminate if any command returns a non-0 return code or an error.
+    script:
+      - echo *** Testing absolutes
+      # Can't run this as it's actually a test that the exit code comes out as well
+      #- echo "- hello_world"
+      #- /absolutes.hello_world
+      - echo - hello_world_printf
+      - /absolutes.hello_world_printf
+      - echo - simple_hello_world
+      - /absolutes.simple_hello_world
+
+      - echo
+      - echo *** Testing utilities
+      - echo - hello_world
+      - /utilities.hello_world
+      # This reports a truncated file - is this a bug?
+      #- echo "- hello_world_macros"
+      #- /utilities.hello_world_macros
+
+      - echo
+      - echo *** Testing modules
+      - echo - module_init
+      - /modules.module_init
+      - echo - module_c
+      - /modules.module_c
