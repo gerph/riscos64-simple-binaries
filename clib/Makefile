@@ -321,6 +321,7 @@ OBJS = 	\
 		version.o \
 		\
 		abs.o \
+		labs.o \
 		\
 		${MATHS_OBJS} \
 		\
