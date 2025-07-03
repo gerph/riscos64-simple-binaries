@@ -198,6 +198,11 @@ int fsetpos(FILE *fh, const fpos_t *posp)
     return fail;
 }
 
+void rewind(FILE *fh)
+{
+    fseek(fh, 0, SEEK_SET);
+}
+
 int fgetpos(FILE *fh, fpos_t *posp)
 {
     long int pos = ftell(fh);
