@@ -142,7 +142,7 @@ int fseek(FILE *fh, long int pos, int whence)
         /* No error, so unmark as any character pushed back */
         fh->_flags &= ~ _IO_CHARPUSHED;
     }
-    return pos;
+    return 0;
 }
 
 
@@ -190,6 +190,19 @@ int feof(FILE *fh)
         return 1; /* Error, so return EOF */
     }
     return at_eof ? 1 : 0;
+}
+
+int fsetpos(FILE *fh, const fpos_t *posp)
+{
+    int fail = fseek(fh, posp->__pos, SEEK_SET);
+    return fail;
+}
+
+int fgetpos(FILE *fh, fpos_t *posp)
+{
+    long int pos = ftell(fh);
+    posp->__pos = pos;
+    return pos == -1 ? -1 : 0;
 }
 
 
