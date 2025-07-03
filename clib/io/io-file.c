@@ -137,6 +137,11 @@ int fseek(FILE *fh, long int pos, int whence)
         __fs_seterrno(err);
         return -1;
     }
+    else
+    {
+        /* No error, so unmark as any character pushed back */
+        fh->_flags &= ~ _IO_CHARPUSHED;
+    }
     return pos;
 }
 
@@ -209,9 +214,30 @@ size_t fread(void *ptr, size_t size, size_t nitems, FILE *fh)
 
     size_t transfer = size * nitems;
     size_t not_transferred = 0;
-    err = _swix(OS_GBPB, _INR(0, 3)|_OUT(3), 4, fh->_fileno, ptr, transfer, &not_transferred);
-    if (err)
-        return 0;
+    size_t totransfer = transfer;
+
+    if (transfer == 0)
+        return 0; /* Nothing to do?! */
+
+    if (fh->_flags & _IO_CHARPUSHED)
+    {
+        uint8_t *data = (uint8_t *)ptr;
+        *data++ = fh->_shortbuf[0];
+        /* Unmark as any character pushed back */
+        fh->_flags &= ~ _IO_CHARPUSHED;
+        totransfer -= 1;
+        ptr = (void*)data;
+    }
+
+    if (totransfer != 0)
+    {
+        err = _swix(OS_GBPB, _INR(0, 3)|_OUT(3), 4, fh->_fileno, ptr, totransfer, &not_transferred);
+        if (err)
+        {
+            /* FIXME: Set errno? */
+            return 0;
+        }
+    }
 
     if (not_transferred == 0)
         return nitems;
@@ -222,7 +248,7 @@ size_t fread(void *ptr, size_t size, size_t nitems, FILE *fh)
     /* They requested a size that wasn't the whole, so we need to move back */
     {
         size_t transferred = (transfer - not_transferred);
-        size_t nitems = transferred / nitems;
+        nitems = transferred / nitems;
         size_t excess = transferred % nitems;
         if (excess)
         {
@@ -275,6 +301,11 @@ size_t fwrite(const void *ptr, size_t size, size_t nitems, FILE *fh)
         __fs_seterrno(err);
         return -1;
     }
+    else
+    {
+        /* No error, so unmark as any character pushed back */
+        fh->_flags &= ~ _IO_CHARPUSHED;
+    }
 
     return transfer - not_transferred;
 }
@@ -292,6 +323,14 @@ int fgetc(FILE *fh)
         return os_readc();
 
     CHECK_MAGIC(fh, -1);
+
+    if (fh->_flags & _IO_CHARPUSHED)
+    {
+        c = fh->_shortbuf[0];
+        /* Unmark as any character pushed back */
+        fh->_flags &= ~ _IO_CHARPUSHED;
+        return c;
+    }
 
     err = _swix(OS_BGet, _IN(1)|_OUT(0), fh->_fileno, &c);
     /* FIXME: Doesn't check for EOF */
@@ -351,6 +390,11 @@ int fputc(int c, FILE *fh)
         __fs_seterrno(err);
         return -1;
     }
+    else
+    {
+        /* No error, so unmark as any character pushed back */
+        fh->_flags &= ~ _IO_CHARPUSHED;
+    }
 
     return c;
 }
@@ -387,6 +431,17 @@ int fileno(FILE *fh)
     // CHECK_MAGIC(fh, -1);
 
     return fh->_fileno;
+}
+
+int ungetc(int c, FILE *fh)
+{
+    if (fh->_flags & _IO_CHARPUSHED)
+        return EOF; /* Already pushed so cannot push more */
+    if (c == EOF)
+        return EOF; /* No push if they tried pushing EOF */
+    fh->_flags |= _IO_CHARPUSHED;
+    fh->_shortbuf[0] = c;
+    return c;
 }
 
 void setbuf(FILE *fh, char *buf)
