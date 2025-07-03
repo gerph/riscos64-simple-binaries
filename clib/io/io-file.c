@@ -389,6 +389,30 @@ int fileno(FILE *fh)
     return fh->_fileno;
 }
 
+void setbuf(FILE *fh, char *buf)
+{
+    /* FIXME: We don't support buffering at the moment */
+    return;
+}
+
+int setvbuf(FILE *fh, char *buf, int type, size_t size)
+{
+    /* FIXME: We don't support buffering at the moment */
+    return 0;
+}
+
+void clearerr(FILE *fh)
+{
+    /* FIXME: We don't support error flagging at the moment */
+    return;
+}
+
+int ferror(FILE *fh)
+{
+    /* FIXME: We don't support error flagging at the moment */
+    return 0;
+}
+
 int isatty(int fd)
 {
     if (fd == -2)
