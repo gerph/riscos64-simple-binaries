@@ -264,6 +264,9 @@ OBJS = 	\
 		kernel/kernel-hostos.o \
 		kernel/kernel-osrdch.o \
 		kernel/kernel-oswrch.o \
+		kernel/kernel-osgbpb.o \
+		kernel/kernel-osargs.o \
+		kernel/kernel-osword.o \
 		\
 		atexit.o \
 		clib.o \
