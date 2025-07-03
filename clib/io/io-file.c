@@ -210,7 +210,25 @@ size_t fread(void *ptr, size_t size, size_t nitems, FILE *fh)
     if (err)
         return 0;
 
-    return transfer - not_transferred;
+    if (not_transferred == 0)
+        return nitems;
+
+    if (size == 1)
+        return transfer - not_transferred;
+
+    /* They requested a size that wasn't the whole, so we need to move back */
+    {
+        size_t transferred = (transfer - not_transferred);
+        size_t nitems = transferred / nitems;
+        size_t excess = transferred % nitems;
+        if (excess)
+        {
+            /* Move back the amount we didn't read */
+            fseek(fh, -excess, SEEK_CUR);
+        }
+
+        return nitems;
+    }
 }
 
 
