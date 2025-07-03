@@ -61,6 +61,9 @@ FILE *fopen(const char *filename, const char *mode)
 
 int fclose(FILE *fh)
 {
+    if (fh == stdout || fh == stderr || fh == stdin)
+        return 0; /* Cannot close the standard handles, but we don't error */
+
     if (fh)
     {
         CHECK_MAGIC(fh, -1);
