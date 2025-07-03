@@ -444,7 +444,10 @@ int fileno(FILE *fh)
     }
 
     if (fh == stdin || fh == stdout || fh == stderr)
+    {
+        errno = EBADF;
         return -2;
+    }
 
     // CHECK_MAGIC(fh, -1);
 

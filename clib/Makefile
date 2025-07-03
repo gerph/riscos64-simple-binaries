@@ -267,6 +267,7 @@ OBJS = 	\
 		kernel/kernel-osgbpb.o \
 		kernel/kernel-osargs.o \
 		kernel/kernel-osword.o \
+		kernel/kernel-osfind.o \
 		\
 		atexit.o \
 		clib.o \
