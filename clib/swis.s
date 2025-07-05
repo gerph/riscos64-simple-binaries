@@ -1,7 +1,5 @@
 .include "asm/macros.hdr"
 
-.text
-
 .global __os_writec
 .global __os_readc
 .global __os_word
@@ -17,7 +15,9 @@
 .global __os_fscontrol3
 .global _kernel_osfile
 .global __os_changeenvironment
+.global __os_byte_out1
 
+.section .text.os_writec
 
     FUNC    "__os_writec"
     STP     x29, x30, [sp, #-16]!
@@ -29,6 +29,7 @@
     LDP     x29, x30, [sp], #16
     RET
 
+.section .text.os_readc
     FUNC    "__os_readc"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
@@ -43,6 +44,7 @@
     LDP     x29, x30, [sp], #16
     RET
 
+.section .text.os_word
     FUNC    "__os_word"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
@@ -55,6 +57,7 @@
     LDP     x29, x30, [sp], #16
     RET
 
+.section .text.os_inkey
     FUNC    "__os_inkey"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
@@ -78,6 +81,7 @@ __os_inkey_escape:
     MOV     x0, #-2
     B       __os_inkey_exit
 
+.section .text.os_write0
     FUNC    "__os_write0"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
@@ -88,6 +92,7 @@ __os_inkey_escape:
     LDP     x29, x30, [sp], #16
     RET
 
+.section .text.os_writen
     FUNC    "__os_writen"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
@@ -98,6 +103,7 @@ __os_inkey_escape:
     LDP     x29, x30, [sp], #16
     RET
 
+.section .text.os_newline
     FUNC    "__os_newline"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
@@ -108,6 +114,7 @@ __os_inkey_escape:
     LDP     x29, x30, [sp], #16
     RET
 
+.section .text.os_readescapestate
     FUNC    "__os_readescapestate"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
@@ -118,6 +125,7 @@ __os_inkey_escape:
     LDP     x29, x30, [sp], #16
     RET
 
+.section .text.os_changeenvironment
 // r0 = envnumber, r1 = handler, r2 = workspace, r3 = buffer, r4-> old values (r1,r2,r3)
 // returns r0-> error
     FUNC    "__os_changeenvironment"
@@ -139,6 +147,7 @@ __os_changeenvironment_error:
     LDP     x29, x30, [sp], #16
     RET
 
+.section .text.os_generateerror
     FUNC    "__os_generateerror"
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
@@ -148,6 +157,7 @@ __os_changeenvironment_error:
     MOV     x0, #1                      // If OS_GenerateError returns, we jump to the exit code
     B       exit
 
+.section .text.os_file2
     FUNC    "__os_file2"
 __os_file3:
     STP     x29, x30, [sp, #-16]!
@@ -158,6 +168,7 @@ __os_file3:
     LDP     x29, x30, [sp], #16
     RET
 
+.section .text.kernel_osfile
 /* => x0 = op
       x1-> filename
       x2-> buffer for x2-x5 (in and out)
@@ -193,6 +204,7 @@ _kosfile_skip_store:
     LDP     x29, x30, [sp], #16
     RET
 
+.section .text.os_fscontrol2
     FUNC    "__os_fscontrol2"
 __os_fscontrol3:
     STP     x29, x30, [sp, #-16]!
@@ -200,6 +212,17 @@ __os_fscontrol3:
     MOV     x10, #0x29                  // OS_FSControl
     ORR     x10, x10, #0x20000
     SVC     #0
+    LDP     x29, x30, [sp], #16
+    RET
+
+// OS_Byte with simple semantics
+// int __os_byte_out1(r0, r1, r2) => r1 value on return
+__os_byte_out1:
+    STP     x29, x30, [sp, #-16]!
+    MOV     x29, sp
+    MOV     x10, #0x6                   // OS_Byte
+    SVC     #0
+    MOV     x0, x1
     LDP     x29, x30, [sp], #16
     RET
 
