@@ -212,7 +212,6 @@ while (<$ifh>)
         #                  |     type (F/O/f)
         #                  scope (l/g)
         if (/^([A-Fa-f0-9]{16})\s+(.*?)\s([_.][a-zA-Z_0-9._-]+|\*ABS\*|\*UND\*)\s+([A-Fa-f0-9]{16})\s+([a-zA-Z_.][^\s]*)$/)
-
         {
             my $address = hex($1);
             my $flags = $2;
@@ -236,6 +235,10 @@ while (<$ifh>)
                     'size' => $size,
                     'name' => $name,
                 };
+        }
+        elsif (/^([A-Fa-f0-9]{16})\s+(.*?)\s(\*UND\*)\s+([A-Fa-f0-9]{16})\s*$/)
+        {
+            # Empty UND appears sometimes in our output. Not clear why, but we ignore.
         }
         else
         {
