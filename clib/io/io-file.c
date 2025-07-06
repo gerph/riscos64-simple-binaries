@@ -61,6 +61,9 @@ FILE *fopen(const char *filename, const char *mode)
 
 int fclose(FILE *fh)
 {
+    if (fh == stdout || fh == stderr || fh == stdin)
+        return 0; /* Cannot close the standard handles, but we don't error */
+
     if (fh)
     {
         CHECK_MAGIC(fh, -1);
@@ -134,7 +137,12 @@ int fseek(FILE *fh, long int pos, int whence)
         __fs_seterrno(err);
         return -1;
     }
-    return pos;
+    else
+    {
+        /* No error, so unmark as any character pushed back */
+        fh->_flags &= ~ _IO_CHARPUSHED;
+    }
+    return 0;
 }
 
 
@@ -184,6 +192,24 @@ int feof(FILE *fh)
     return at_eof ? 1 : 0;
 }
 
+int fsetpos(FILE *fh, const fpos_t *posp)
+{
+    int fail = fseek(fh, posp->__pos, SEEK_SET);
+    return fail;
+}
+
+void rewind(FILE *fh)
+{
+    fseek(fh, 0, SEEK_SET);
+}
+
+int fgetpos(FILE *fh, fpos_t *posp)
+{
+    long int pos = ftell(fh);
+    posp->__pos = pos;
+    return pos == -1 ? -1 : 0;
+}
+
 
 size_t fread(void *ptr, size_t size, size_t nitems, FILE *fh)
 {
@@ -206,9 +232,30 @@ size_t fread(void *ptr, size_t size, size_t nitems, FILE *fh)
 
     size_t transfer = size * nitems;
     size_t not_transferred = 0;
-    err = _swix(OS_GBPB, _INR(0, 3)|_OUT(3), 4, fh->_fileno, ptr, transfer, &not_transferred);
-    if (err)
-        return 0;
+    size_t totransfer = transfer;
+
+    if (transfer == 0)
+        return 0; /* Nothing to do?! */
+
+    if (fh->_flags & _IO_CHARPUSHED)
+    {
+        uint8_t *data = (uint8_t *)ptr;
+        *data++ = fh->_shortbuf[0];
+        /* Unmark as any character pushed back */
+        fh->_flags &= ~ _IO_CHARPUSHED;
+        totransfer -= 1;
+        ptr = (void*)data;
+    }
+
+    if (totransfer != 0)
+    {
+        err = _swix(OS_GBPB, _INR(0, 3)|_OUT(3), 4, fh->_fileno, ptr, totransfer, &not_transferred);
+        if (err)
+        {
+            /* FIXME: Set errno? */
+            return 0;
+        }
+    }
 
     if (not_transferred == 0)
         return nitems;
@@ -219,7 +266,7 @@ size_t fread(void *ptr, size_t size, size_t nitems, FILE *fh)
     /* They requested a size that wasn't the whole, so we need to move back */
     {
         size_t transferred = (transfer - not_transferred);
-        size_t nitems = transferred / nitems;
+        nitems = transferred / nitems;
         size_t excess = transferred % nitems;
         if (excess)
         {
@@ -272,6 +319,11 @@ size_t fwrite(const void *ptr, size_t size, size_t nitems, FILE *fh)
         __fs_seterrno(err);
         return -1;
     }
+    else
+    {
+        /* No error, so unmark as any character pushed back */
+        fh->_flags &= ~ _IO_CHARPUSHED;
+    }
 
     return transfer - not_transferred;
 }
@@ -289,6 +341,14 @@ int fgetc(FILE *fh)
         return os_readc();
 
     CHECK_MAGIC(fh, -1);
+
+    if (fh->_flags & _IO_CHARPUSHED)
+    {
+        c = fh->_shortbuf[0];
+        /* Unmark as any character pushed back */
+        fh->_flags &= ~ _IO_CHARPUSHED;
+        return c;
+    }
 
     err = _swix(OS_BGet, _IN(1)|_OUT(0), fh->_fileno, &c);
     /* FIXME: Doesn't check for EOF */
@@ -348,6 +408,11 @@ int fputc(int c, FILE *fh)
         __fs_seterrno(err);
         return -1;
     }
+    else
+    {
+        /* No error, so unmark as any character pushed back */
+        fh->_flags &= ~ _IO_CHARPUSHED;
+    }
 
     return c;
 }
@@ -379,11 +444,49 @@ int fileno(FILE *fh)
     }
 
     if (fh == stdin || fh == stdout || fh == stderr)
+    {
+        errno = EBADF;
         return -2;
+    }
 
     // CHECK_MAGIC(fh, -1);
 
     return fh->_fileno;
+}
+
+int ungetc(int c, FILE *fh)
+{
+    if (fh->_flags & _IO_CHARPUSHED)
+        return EOF; /* Already pushed so cannot push more */
+    if (c == EOF)
+        return EOF; /* No push if they tried pushing EOF */
+    fh->_flags |= _IO_CHARPUSHED;
+    fh->_shortbuf[0] = c;
+    return c;
+}
+
+void setbuf(FILE *fh, char *buf)
+{
+    /* FIXME: We don't support buffering at the moment */
+    return;
+}
+
+int setvbuf(FILE *fh, char *buf, int type, size_t size)
+{
+    /* FIXME: We don't support buffering at the moment */
+    return 0;
+}
+
+void clearerr(FILE *fh)
+{
+    /* FIXME: We don't support error flagging at the moment */
+    return;
+}
+
+int ferror(FILE *fh)
+{
+    /* FIXME: We don't support error flagging at the moment */
+    return 0;
 }
 
 int isatty(int fd)

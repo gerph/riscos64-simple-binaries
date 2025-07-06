@@ -17,6 +17,13 @@ typedef struct {
    int32_t start, end;       /* start address/length, end address/attributes */
 } _kernel_osfile_block;
 
+typedef struct {
+   void * dataptr;       /* memory address of data */
+   int32_t nbytes, fileptr;
+   int32_t buf_len;
+   const char * wild_fld;      /* points to wildcarded filename to match */
+} _kernel_osgbpb_block;
+
 #define _KERNEL_NOXBIT (1lu<<31)    /* Always clear the X bit (otherwise always set) */
 _kernel_oserror *_kernel_swi(int swinum, _kernel_swi_regs *in, _kernel_swi_regs *out);
 
@@ -28,8 +35,29 @@ int _kernel_escape_seen(void);
 _kernel_oserror *_kernel_setenv(const char *var, const char *val); /* Use NULL to delete */
 _kernel_oserror *_kernel_getenv(const char *var, char *buf, unsigned size);
 
+int _kernel_osfind(int op, const char *name);
 int _kernel_osfile(int op, const char *name, _kernel_osfile_block *inout);
+int _kernel_osgbpb(int op, unsigned handle, _kernel_osgbpb_block *inout);
+int _kernel_osargs(int op, unsigned handle, int arg);
+int _kernel_osword(int op, int *data);
 
+/* If a function returned a negative error code, and it has also updated the
+ * _kernel_last_oserror value, this will be returned:
+ */
+#define _kernel_ERROR (-2)
+
+
+#define _kernel_HOST_UNDEFINED    -1
+#define _kernel_BBC_MOS1_0         0
+#define _kernel_BBC_MOS1_2         1
+#define _kernel_BBC_ACW            2
+#define _kernel_BBC_MASTER         3
+#define _kernel_BBC_MASTER_ET      4
+#define _kernel_BBC_MASTER_COMPACT 5
+#define _kernel_ARTHUR             6
+#define _kernel_RISCOS             6
+#define _kernel_SPRINGBOARD        7
+#define _kernel_A_UNIX             8
 
 /*************************************************** Gerph *********
  Function:      _kernel_hostos

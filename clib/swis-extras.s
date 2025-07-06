@@ -6,7 +6,6 @@
 .global __colourtrans_setgcol
 .global __os_screenmode
 .global __os_setcolour
-.global __os_byte_out1
 
 
     FUNC    "__draw_fill"
@@ -42,16 +41,5 @@
     MOV     x29, sp
     MOV     x10, #0x61                  // OS_SetColour
     SVC     #0
-    LDP     x29, x30, [sp], #16
-    RET
-
-// OS_Byte with simple semantics
-// int __os_byte_out1(r0, r1, r2) => r1 value on return
-__os_byte_out1:
-    STP     x29, x30, [sp, #-16]!
-    MOV     x29, sp
-    MOV     x10, #0x6                   // OS_Byte
-    SVC     #0
-    MOV     x0, x1
     LDP     x29, x30, [sp], #16
     RET
