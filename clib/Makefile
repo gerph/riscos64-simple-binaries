@@ -121,8 +121,11 @@ CFLAGS = -U__linux -U__linux__ -U__unix__ -U__unix -Ulinux -Uunix -U__gnu_linux_
 CFLAGS += -D__riscos -D__riscos64
 
 # Allow us to build without assuming the standard library is present
-CFLAGS += -nostdlib -ffreestanding -march=armv8-a
-#CFLAGS += -nostdlib -ffreestanding -march=armv8-a+nofp
+CFLAGS += -nostdlib -ffreestanding
+ifndef NATIVE_TOOLS
+CFLAGS += -march=armv8-a
+#CFLAGS += -march=armv8-a+nofp
+endif
 
 # Add the exports directory to those things we'll build with
 CFLAGS += -Iriscos_headers/C/ -Iriscos_headers/Lib/ -Iriscos_headers/Lib/CLib/ -I.
@@ -210,11 +213,13 @@ MATHS_OBJS = \
 CFLAGS += -Imaths/include/
 
 
+ifndef NATIVE_TOOLS
 CC = aarch64-unknown-linux-gnu-gcc
 AS = aarch64-unknown-linux-gnu-as
 LD = aarch64-unknown-linux-gnu-ld
 AR = aarch64-unknown-linux-gnu-ar
 OBJCOPY = aarch64-unknown-linux-gnu-objcopy
+endif
 
 OBJS = 	\
 		assert.o \
@@ -257,7 +262,6 @@ OBJS = 	\
 		kernel/kernel-state.o \
 		kernel/kernel-cli.o \
 		kernel/kernel-system.o \
-		kernel/kernel-unwind-current.o \
 		kernel/kernel-unwind.o \
 		kernel/kernel-swi.o \
 		kernel/kernel-swix.o \
@@ -271,7 +275,6 @@ OBJS = 	\
 		\
 		atexit.o \
 		clib.o \
-		longjmp.o \
 		env.o \
 		signal.o \
 		main.o \
@@ -332,15 +335,22 @@ OBJS = 	\
 		random/rand.o \
 		random/random.o \
 		\
+		${BUILTIN_OBJS}
+
+ifndef NATIVE_TOOLS
+# The assembler files don't build with the native tools for x64 (oddly enough)
+OBJS += kernel/kernel-unwind-current.o \
+		longjmp.o \
+		\
 		swis-extras.o \
 		swis-kernel.o \
+		swis.o \
 		swis-module.o \
 		swis-heap.o \
-		swis.o \
 		start.o \
 		start-exit.o \
-		\
-		${BUILTIN_OBJS}
+
+endif
 
 #		trunc.o \
 #		fabs.o \
