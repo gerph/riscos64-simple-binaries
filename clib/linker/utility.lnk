@@ -37,7 +37,7 @@ SECTIONS
         /* 00000058 */ LONG(0x00534f20)                 /*  OS. :  */
 
         *(.text)
-        *(.text.*)
+        *(SORT(.text.*))
         . = ALIGN(16);
         __CodeEnd = ABSOLUTE(.);
     } > util
@@ -46,7 +46,8 @@ SECTIONS
     .rodata . : {
         __RODataStart = ABSOLUTE(.);
         *(.rodata)
-        *(.rodata.*)
+        *(SORT(.rodata.*))
+        *(.riscos.reloc)
 
         . = ALIGN(8);
         __GOTStart = ABSOLUTE(.);
@@ -72,7 +73,7 @@ SECTIONS
     .data.rel . : {
         . = ALIGN(16);
         *(.data.rel)
-        *(.data.rel.*)
+        *(SORT(.data.rel.*))
 
         . = ALIGN(16);
 

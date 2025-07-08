@@ -13,9 +13,9 @@ SECTIONS
         __CodeStart = ABSOLUTE(.);
 
         KEEP(*(.init.rmf));
-        *(.init.rmf);
+        *(.init.rmf)
         *(.text)
-        *(.text.*)
+        *(SORT(.text.*))
         . = ALIGN(16);
         __CodeEnd = ABSOLUTE(.);
     } > rmf
@@ -24,7 +24,8 @@ SECTIONS
     .rodata . : {
         __RODataStart = ABSOLUTE(.);
         *(.rodata)
-        *(.rodata.*)
+        *(SORT(.rodata.*))
+        *(.riscos.reloc)
 
         . = ALIGN(8);
         __GOTStart = ABSOLUTE(.);
@@ -50,7 +51,7 @@ SECTIONS
     .data.rel . : {
         . = ALIGN(16);
         *(.data.rel)
-        *(.data.rel.*)
+        *(SORT(.data.rel.*))
 
         . = ALIGN(16);
 

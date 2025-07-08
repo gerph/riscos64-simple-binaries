@@ -9,7 +9,6 @@ SECTIONS
 
     .text AIF_BASE :
     {
-/*        . = AIF_BASE; */
         __CodeStart = ABSOLUTE(.);
         /* 00000000 */ LONG(0xe1a00000) /* MOV     r0, r0 */
         /* 00000004 */ LONG(0xe1a00000) /* MOV     r0, r0 */
@@ -50,7 +49,7 @@ SECTIONS
         KEEP(*(.init.aif));
         *(.init.aif)
         *(.text)
-        *(.text.*)
+        *(SORT(.text.*))
         . = ALIGN(16);
         __CodeEnd = ABSOLUTE(.);
     } > aif
@@ -59,7 +58,8 @@ SECTIONS
     .rodata . : {
         __RODataStart = ABSOLUTE(.);
         *(.rodata)
-        *(.rodata.*)
+        *(SORT(.rodata.*))
+        *(.riscos.reloc)
 
         . = ALIGN(8);
         __GOTStart = ABSOLUTE(.);
@@ -85,7 +85,7 @@ SECTIONS
     .data.rel . : {
         . = ALIGN(16);
         *(.data.rel)
-        *(.data.rel.*)
+        *(SORT(.data.rel.*))
 
         . = ALIGN(16);
 
