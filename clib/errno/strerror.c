@@ -37,7 +37,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <ssp/ssp.h>
+// #include <ssp/ssp.h>
 
 /* Enough space to hold the number + the error message */
 #define NL_TEXTMAX  (120)
