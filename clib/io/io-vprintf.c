@@ -26,7 +26,7 @@ static int count_pad_digits(formatparams_t *params, int size, char *prefix)
         n = strlen(prefix);
     if (params->digit_pad)
     {
-        int pad = (params->precision ? params->precision : (params->align_left ? size : (params->field_width - n))) - size;
+        int pad = (params->precision != -1 ? params->precision : (params->align_left ? size : (params->field_width - n))) - size;
         if (pad > 0)
             n += pad;
     }
@@ -41,7 +41,7 @@ static int pad_digits(outputter_t *out, formatparams_t *params, int size, char *
 
     if (params->digit_pad)
     {
-        int pad = (params->precision ? params->precision : (params->align_left ? size : (params->field_width - n))) - size;
+        int pad = (params->precision != -1 ? params->precision : (params->align_left ? size : (params->field_width - n))) - size;
         if (pad > 0)
         {
             char shortbuf[8];
@@ -187,6 +187,7 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
             c = *format++;
         }
 
+        params.precision = -1;
         if (c=='.')
         {
             c = *format++;
@@ -207,6 +208,10 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
                         params.precision = (params.precision * 10) + c - '0';
                         c = *format++;
                     }
+                }
+                else
+                {
+                    params.precision = 0;
                 }
             }
 
@@ -272,7 +277,7 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
                     bool has_newline = false;
                     if (s==NULL)
                         s = "<NULL>";
-                    if (params.precision != 0)
+                    if (params.precision != -1)
                     {
                         for (size = 0; size < params.precision ; size++)
                         {
@@ -325,7 +330,7 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
                     uint64_t value;
                     char signbuf[2] = " ";
                     char *prefix = NULL;
-                    if (params.precision && !params.digit_pad)
+                    if (params.precision != -1 && !params.digit_pad)
                         params.digit_pad = '0';
                     if (c == 'u' || hex || c == 'o')
                     {

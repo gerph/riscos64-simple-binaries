@@ -12,6 +12,7 @@
 #define os_word __os_word
 #define os_inkey __os_inkey
 #define os_write0 __os_write0
+#define os_write0end __os_write0end
 #define os_writen __os_writen
 #define os_newline __os_newline
 #define os_generateerror __os_generateerror
@@ -36,6 +37,7 @@ void os_setcolour(uint32_t flags, uint32_t gcol);
 _kernel_oserror *os_word(int32_t op, char reason, char *data);
 int os_inkey(int32_t value);
 _kernel_oserror *os_write0(const char *str);
+_kernel_oserror *os_write0end(const char *str, const char **endp); /* Returns the end pointer as well */
 _kernel_oserror *os_writen(const char *str, int n);
 _kernel_oserror *os_newline(void);
 void os_generateerror(_kernel_oserror *err) __attribute__ ((__noreturn__));

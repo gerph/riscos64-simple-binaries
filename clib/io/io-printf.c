@@ -9,8 +9,11 @@
 
 static int stdout_write0(outputter_t *out, const char *str)
 {
-    os_write0(str);
-    return strlen(str);
+    const char *end;
+    _kernel_oserror *err = os_write0end(str, &end);
+    if (err)
+        return 0;
+    return end - str;
 }
 
 static int stdout_writen(outputter_t *out, const char *str, size_t len)

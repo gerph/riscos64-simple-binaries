@@ -5,6 +5,7 @@
 .global __os_word
 .global __os_inkey
 .global __os_write0
+.global __os_write0end
 .global __os_writen
 .global __os_newline
 .global __os_readescapestate
@@ -88,6 +89,18 @@ __os_inkey_escape:
     MOV     x10, #0x2                   // OS_Write0
     ORR     x10, x10, #0x20000
     SVC     #0
+    CSEL    x0, x0, xzr, VS
+    LDP     x29, x30, [sp], #16
+    RET
+
+.section .text.os_write0end
+    FUNC    "__os_write0end"
+    STP     x29, x30, [sp, #-16]!
+    MOV     x29, sp
+    MOV     x10, #0x2                   // OS_Write0
+    ORR     x10, x10, #0x20000
+    SVC     #0
+    STR     x0, [x1]
     CSEL    x0, x0, xzr, VS
     LDP     x29, x30, [sp], #16
     RET
