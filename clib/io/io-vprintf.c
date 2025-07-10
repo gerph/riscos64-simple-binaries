@@ -94,45 +94,31 @@ static int write_with_newlines(outputter_t *out, const char *s, int size)
 
 int _vprintf(outputter_t *out, const char *format, va_list args)
 {
-    const char *next_nl = strchr(format, '\n');
     int n = 0;
 
     while (*format)
     {
         formatparams_t params = {0};
         char c;
-        const char *next_percent = strchr(format, '%');
-        if (next_percent == NULL && next_nl == NULL)
+        size_t next_break = strcspn(format, "\n%");
+        if (next_break != 0)
         {
-            /* No more characters left, so we output the remaining string */
-            n += out->write0(out, format);
+            n += out->writen(out, format, next_break);
+            format += next_break;
+        }
+        c = *format++;
+        if (c=='\n')
+        {
+            n += out->newline(out);
+            continue;
+        }
+        else if (c== '\0')
+        {
             break;
         }
-        while (format < next_percent || next_nl)
-        {
-            int len = next_percent - format;
-            if ((next_percent && next_nl && next_nl < next_percent) ||
-                (next_nl && !next_percent))
-            {
-                len = next_nl - format;
-                n += out->writen(out, format, len);
-                n += out->newline(out);
-                format = next_nl + 1;
-                next_nl = strchr(format, '\n');
-            }
-            else
-            {
-                n += out->writen(out, format, len);
-                format += len;
-                break;
-            }
-        }
-        /* Skip the percent */
-        if (next_percent)
-            format ++;
-        else
-            break;
 
+        /* It's a %, so we process the format characters */
+        /* Process the format character */
         c = *format++;
 
         /* Parse the field parameters */
