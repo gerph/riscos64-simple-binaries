@@ -34,6 +34,19 @@ char *strpbrk(const char *s, const char *charset)
         return NULL; /* Nothing in the charset, so nothing found */
     if (charset[1] == '\0')
         return strchr(s, *charset); /* Only 1 character */
+    if (charset[2] == '\0')
+    {
+        /* Only 2 characters, so we can do this with a completely separate implementation which should be faster */
+        uint8_t c1 = charset[0];
+        uint8_t c2 = charset[1];
+        do {
+            c = *s++;
+            if (c == '\0')
+                return NULL; /* Not found */
+            if (c == c1 || c == c2)
+                return s-1;
+        } while (1);
+    }
 
     /* Set up a table of terminators */
     for (; *charset; charset++)
