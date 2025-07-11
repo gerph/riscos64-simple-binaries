@@ -163,10 +163,16 @@ MATHS_OBJS = \
 		maths/e_acosf.o \
 		maths/e_asin.o \
 		maths/e_asinf.o \
+		maths/e_atan2.o \
+		maths/e_atan2f.o \
+		maths/e_atan2l.o \
 		maths/e_exp.o \
 		maths/e_expf.o \
 		maths/e_log.o \
 		maths/e_logf.o \
+		maths/e_fmod.o \
+		maths/e_fmodf.o \
+		maths/e_fmodl.o \
 		maths/e_pow.o \
 		maths/e_powf.o \
 		maths/e_rem_pio2.o \
@@ -195,6 +201,9 @@ MATHS_OBJS = \
 		maths/s_floor.o \
 		maths/s_floorf.o \
 		maths/s_floorl.o \
+		maths/s_modf.o \
+		maths/s_modff.o \
+		maths/s_modfl.o \
 		maths/s_nextafter.o \
 		maths/s_nextafterl.o \
 		maths/s_nextafterf.o \
