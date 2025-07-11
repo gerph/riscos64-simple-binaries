@@ -191,15 +191,15 @@ __os_file3:
     STP     x29, x30, [sp, #-16]!
     MOV     x29, sp
 
-    MOV     x6, x3
+    MOV     x6, x2
 
     CMP     x6, #0
     BEQ     _kosfile_skip_load
 
-_kosfile_skip_load:
-    LDP     w4, w5, [x6, #8]
     LDP     w2, w3, [x6]
+    LDP     w4, w5, [x6, #8]
 
+_kosfile_skip_load:
     MOV     x10, #0x9                   // OS_File
     ORR     x10, x10, #0x20000
     SVC     #0
@@ -207,8 +207,8 @@ _kosfile_skip_load:
     CMP     x6, #0
     BEQ     _kosfile_skip_store
 
-    STP     w4, w5, [x6, #8]
     STP     w2, w3, [x6]
+    STP     w4, w5, [x6, #8]
 
 _kosfile_skip_store:
     MOV     x6, #-2
