@@ -9,6 +9,8 @@
 #include "kernel.h"
 #include "swis_os.h"
 
+#define MAX_SEARCH (250)
+
 /*************************************************** Gerph *********
  Function:      _kernel_procname
  Description:   For a given PC, return the procedure name
@@ -23,14 +25,14 @@ const char *_kernel_procname(uint64_t pc)
 
     /* I search up to 100 words before the pc looking for the marker that    */
     /* shows me where the function name is.                                  */
-    for (i=0; i<100; i++)
+    for (i=0; i<MAX_SEARCH && z>(uint32_t*)0x8000; i++)
     {   int w = *--z;
         if ((w & 0xffff0003) == 0xff000000)
         {   name = (char *)z - (w & 0xffff);
             break;
         }
     }
-    if (i == 100)
+    if (i == MAX_SEARCH || z<=(uint32_t*)0x8000)
         return NULL;
     return name;
 }
