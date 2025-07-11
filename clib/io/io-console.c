@@ -22,7 +22,9 @@ int putchar(char c)
 
 int puts(const char *ptr)
 {
-    int total = strlen(ptr ? ptr : "<NULL>");
+    if (ptr == NULL)
+        ptr = "<NULL>";
+    int total = strlen(ptr);
     int wrote = 0;
 
     while (total)
