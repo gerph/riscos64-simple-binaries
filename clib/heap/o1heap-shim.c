@@ -70,7 +70,12 @@ void * HEAP_TYPEFUNC(O1heap, realloc) (void *block, size_t new_size, size_t old_
     void *new_block = HEAP_TYPEFUNC(O1heap, alloc) (new_size);
     if (new_block != NULL)
     {
-        memcpy(new_block, block, old_size);
+        int copy_size;
+        if (new_size > old_size)
+            copy_size = old_size;
+        else
+            copy_size = new_size;
+        memcpy(new_block, block, copy_size);
         HEAP_TYPEFUNC(O1heap, free) (block, old_size); /* This is safe, because it's only going to manipulate the HWM */
     }
     return new_block;
