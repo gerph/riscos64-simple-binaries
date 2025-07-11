@@ -314,6 +314,7 @@ OBJS = 	\
 		string/strcase.o \
 		\
 		conversion/atoi.o \
+		conversion/atol.o \
 		conversion/strtod.o \
 		conversion/strtol.o \
 		conversion/strtoul.o \
