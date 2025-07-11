@@ -250,6 +250,7 @@ OBJS = 	\
 		fs/fs-errors.o \
 		fs/fs-remove.o \
 		fs/fs-rename.o \
+		fs/fs-tmpfile.o \
 		fs/fs-tmpnam.o \
 		\
 		kernel/kernel-backtrace.o \

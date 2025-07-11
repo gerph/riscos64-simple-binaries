@@ -29,7 +29,7 @@ FILE *fopen(const char *filename, const char *mode)
 
     reason |= (1<<2) | (1<<3); /* Error if not a file */
 
-    FILE *fh = malloc(sizeof(*fh));
+    FILE *fh = calloc(1, sizeof(*fh));
     if (fh == NULL)
     {
         errno = ENOMEM;
@@ -68,9 +68,21 @@ int fclose(FILE *fh)
     {
         CHECK_MAGIC(fh, -1);
         if (fh->_fileno)
-            _swix(OS_Find, _INR(0, 1), 0, fh->_fileno);
+        {
+            _kernel_osfind(0, (const char *)fh->_fileno); /* Close file */
+            fh->_fileno = 0;
+            if (fh->_flags & _IO_DELETEONCLOSE)
+            {
+                /* Delete the file */
+                if (fh->_markers)
+                {
+                    _kernel_osfile(6, fh->_markers->filename, NULL);
+                    free(fh->_markers);
+                    fh->_markers = NULL;
+                }
+            }
+        }
         fh->_flags = -1; /* Clear the magic code */
-        fh->_fileno = 0;
 
         /* Unlink from chain */
         FILE **lastp = &__file_list;

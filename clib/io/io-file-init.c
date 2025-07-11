@@ -7,9 +7,11 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <kernel.h>
 
 FILE *__file_list;
 #pragma weak free
+#pragma weak fclose
 
 void __io_final(void)
 {
@@ -20,7 +22,14 @@ void __io_final(void)
         while (cur)
         {
             FILE *chain = cur->_chain;
-            free(cur);
+            if (fclose)
+            {
+                fclose(cur);
+            }
+            else
+            {
+                free(cur);
+            }
             cur = chain;
         }
     }
