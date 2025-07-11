@@ -17,7 +17,7 @@ ALL_TARGETS = libcrt.a
 DEFAULT_GOAL = libcrt.a
 
 
-targetted: export_headers
+targetted: export_headers VersionNum
 	make ${DEFAULT_GOAL}
 
 .PHONY: export
@@ -105,10 +105,11 @@ else
 ${DEFAULT_GOAL}: dockcross-linux-arm64 VersionNum
 	./dockcross-linux-arm64 make ${DEFAULT_GOAL}
 
-endif
-
 VersionNum: ../VersionNum
 	cp $? $@
+
+endif
+
 else
 # We are inside the docker container
 
@@ -247,7 +248,12 @@ OBJS = 	\
 		io/io-constants.o \
 		io/io-console.o \
 		io/io-file-init.o \
-		io/io-file.o \
+		io/io-file-misc.o \
+		io/io-file-fopen.o \
+		io/io-file-read.o \
+		io/io-file-write.o \
+		io/io-file-seek.o \
+		io/io-file-seek-lesser.o \
 		io/io-fgets.o \
 		io/io-fprintf.o \
 		io/io-printf.o \

@@ -9,21 +9,26 @@
 #include <string.h>
 #include "swis_os.h"
 
+#include "io-internal.h"
+
 int getchar(void)
 {
-    return os_readc();
+    return getc(stdin);
 }
 
-int putchar(char c)
+int putchar(int c)
 {
-    os_writec(c);
-    return c;
+    return putc(c, stdout);
 }
 
 int puts(const char *ptr)
 {
     if (ptr == NULL)
         ptr = "<NULL>";
+
+    if (!IO_IS_CONSOLE(stdout))
+        return fputs(stdout, ptr);
+
     int total = strlen(ptr);
     int wrote = 0;
 
