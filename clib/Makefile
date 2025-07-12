@@ -250,6 +250,7 @@ OBJS = 	\
 		io/io-file-init.o \
 		io/io-file-misc.o \
 		io/io-file-fopen.o \
+		io/io-file-fopen-lesser.o \
 		io/io-file-read.o \
 		io/io-file-write.o \
 		io/io-file-seek.o \
