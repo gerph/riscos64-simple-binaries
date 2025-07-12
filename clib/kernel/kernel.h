@@ -117,5 +117,15 @@ int _kernel_unwind(_kernel_unwindblock *inout, char **language);
  ******************************************************************/
 const char *_kernel_procname(uint64_t pc);
 
+/*************************************************** Gerph *********
+ Function:      _kernel_system
+ Description:   Call the CLI command as a subprocess/replacement
+ Parameters:    cmd-> the command to run
+                chain = 0 to run as a sub-program
+                        1 to replace the current program
+ Returns:       1 if failed, 0 if successful?
+ ******************************************************************/
+int _kernel_system(const char *cmd, int chain);
+
 #endif
 

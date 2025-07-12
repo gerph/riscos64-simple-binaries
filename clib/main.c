@@ -87,52 +87,130 @@ int __main(const char *cli,
     char *p;
     int argc = 0;
     int in_spaces = 1;
+    int in_quotes = 0;
+    int escape = 0;
     for (p=arg; *p; p++)
     {
-        if (in_spaces)
+        if (*p == '\\')
         {
-            if (*p != ' ')
+            escape = 1;
+            continue;
+        }
+        if (escape)
+        {
+            escape = 0;
+            continue;
+        }
+
+        if (!in_quotes)
+        {
+            if (in_spaces)
             {
-                /* No longer in spaces, so this is an argument */
-                argc++;
-                in_spaces = 0;
+                if (*p != ' ')
+                {
+                    /* No longer in spaces, so this is an argument */
+                    argc++;
+                    in_spaces = 0;
+                }
+                else
+                {
+                    continue;
+                }
             }
+            else
+            {
+                if (*p == ' ')
+                {
+                    in_spaces = 1;
+                    continue;
+                }
+            }
+            if (*p == '"')
+                in_quotes = 1;
         }
         else
         {
-            if (*p == ' ')
+            if (*p == '"')
             {
-                in_spaces = 1;
+                in_quotes = 0;
             }
         }
     }
+
+    if (in_quotes)
+        __main_fail("Missmatched quotes in command line arguments");
 
     /* We now know how many arguments we have, so we can initialise argv */
 #ifdef BUILD_ARGV_ON_STACK
     char *argv[argc + 1];
 #else
     char **argv = calloc(sizeof(const char *), (argc + 1));
+    if (!argv)
+    {
+        __main_fail("Not enough memory for CLI array");
+    }
 #endif
     in_spaces = 1;
+    in_quotes = 0;
+    escape = 0;
     argc = 0;
+    char *argout=arg;
     for (p=arg; *p; p++)
     {
-        if (in_spaces)
+        if (*p == '\\')
         {
-            if (*p != ' ')
+            escape = 1;
+            continue;
+        }
+        if (escape)
+        {
+            escape = 0;
+            if (*p != '"')
+                *argout++ = '\\';
+            *argout++=*p;
+            continue;
+        }
+
+        if (!in_quotes)
+        {
+            if (in_spaces)
             {
-                /* No longer in spaces, so this is an argument */
-                argv[argc] = p;
-                argc++;
-                in_spaces = 0;
+                if (*p != ' ')
+                {
+                    /* No longer in spaces, so this is an argument */
+                    argv[argc] = argout;
+                    argc++;
+                    in_spaces = 0;
+                }
+                else
+                {
+                    continue;
+                }
             }
+            else
+            {
+                if (*p == ' ')
+                {
+                    *argout++ = '\0';
+                    in_spaces = 1;
+                    continue;
+                }
+            }
+
+            if (*p == '"')
+                in_quotes = 1;
+            else
+                *argout++=*p;
         }
         else
         {
-            if (*p == ' ')
+            if (*p == '"')
             {
-                *p = '\0';
-                in_spaces = 1;
+                in_quotes = 0;
+            }
+            else
+            {
+                *argout++=*p;
             }
         }
     }

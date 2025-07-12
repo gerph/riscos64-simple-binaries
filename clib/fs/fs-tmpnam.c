@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
@@ -13,18 +14,32 @@
 static char *_sys_tmpnam_(char *name, int sig)
 {
     char *tail;
+    bool use_dollar = false;
     /* JRF: I'm not happy with this; it means that the Wimp$ScrapDir path
             is expanded unnecessarily - we could just use the variable name
             in the filename produced. */
     if (_kernel_getenv("Wimp$ScrapDir", name, L_tmpnam-10) != NULL)
+    {
       strcpy(name, "$.tmp");
+      use_dollar = true;
+    }
 
     {
         /* Check that the directory exists */
         int objtype = _kernel_osfile(5, name, NULL);
         /* The name location must be a directory (or an image) */
         if (objtype != 2 && objtype != 3)
-            return NULL;
+        {
+            if (use_dollar)
+            {
+                /* This is a very minimal system without Wimp$ScrapDir, so fall back to $ */
+                strcpy(name, "$");
+            }
+            else
+            {
+                return NULL;
+            }
+        }
     }
 
     tail = name + strlen(name);

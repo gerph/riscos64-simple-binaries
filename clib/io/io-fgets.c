@@ -56,21 +56,28 @@ char *fgets(char *str, int size, FILE *fh)
 {
     char *p;
     if (!fh)
-        return NULL;
-
-    if (fh == stdin)
     {
-        /* They want to read a line from stdin. Might as well use OS_ReadLine */
-        if (!os_readline(str, size))
-            return NULL;
-        return str;
-    }
-    if (fh == stdout || fh == stderr)
-    {
+        /* FIXME: Set errno ? */
         return NULL;
     }
 
     CHECK_MAGIC(fh, NULL);
+
+    if (!IO_IS_READABLE(fh))
+    {
+        return 0;
+    }
+
+    if (IO_IS_KEYBOARD(fh))
+    {
+        /* They want to read a line from keyboard. Might as well use OS_ReadLine */
+        if (!os_readline(str, size))
+        {
+            /* FIXME: Should this set errno ? */
+            return NULL;
+        }
+        return str;
+    }
 
     for (p = str; p - str < size - 1; p++)
     {

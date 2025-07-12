@@ -5,6 +5,7 @@
 
 #include "swis.h"
 #include "io-vprintf.h"
+#include "io-internal.h"
 
 
 static int file_write0(outputter_t *out, const char *str)
@@ -55,9 +56,16 @@ int fprintf(FILE *f, const char *format, ...)
 {
     int n;
     va_list args;
-    va_start(args, format);
 
-    if (f==stdout || f==stderr)
+    CHECK_MAGIC(f, 0);
+
+    if (!IO_IS_WRITABLE(f))
+    {
+        return 0;
+    }
+
+    va_start(args, format);
+    if (IO_IS_SCREEN(f))
         n = vprintf(format, args);
     else
         n = vfprintf(f, format, args);

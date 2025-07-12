@@ -8,6 +8,7 @@
 #ifndef IO_FILE_INIT_H
 #define IO_FILE_INIT_H
 
+void __io_init(void);
 void __io_final(void);
 
 #endif
