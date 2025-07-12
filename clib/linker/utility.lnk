@@ -85,9 +85,11 @@ SECTIONS
     __DataSize = SIZEOF(.data) + SIZEOF(.data.rel);
 
     __ZIStart = ABSOLUTE(.);
-    .bss (NOLOAD) : {
+    /* Note: Unlike the AIF or RMF scripts, we need to include the zero-init area in utilities */
+    .bss . : {
         *(.bss .bss.*)
         . = ALIGN(16);
+        LONG(0xFFFFFFFF) /* Force the section to be written out */
     } > util
     __ZIEnd = ABSOLUTE(.);
     __ZISize = SIZEOF(.bss);
