@@ -22,9 +22,11 @@
  ******************************************************************/
 char *(strdup)(char const *x)
 {
-  char *n=malloc(strlen(x)+1);
-  if (n!=NULL) strcpy(n,x);
-  return n;
+    int space = strlen(x)+1;
+    char *n=malloc(space);
+    if (n!=NULL)
+        memcpy(n,x, space);
+    return n;
 }
 
 /*********************************************** <c> Gerph *********
@@ -56,9 +58,7 @@ char *(strndup)(char const *str, size_t n)
 int stricmp(const char *str1, const char *str2)
 {
   char one,two;
-  int  index;
-  int  len=strlen(str1); /* speeds things up a tad */
-  for(index=0; index<=len; index++)
+  while (1)
   {
 #ifdef __riscos64
     one = *str1++;
@@ -79,6 +79,8 @@ int stricmp(const char *str1, const char *str2)
       else
         return 1;
     }
+    if (one == '\0')
+        return 0;
   }
   return 0;
 }
