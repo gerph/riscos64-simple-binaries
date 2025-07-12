@@ -142,6 +142,10 @@ int fputs(const char *str, FILE *fh)
         str = "<NULL>";
 
     int len = strlen(str);
+    int wrote;
 
-    return fwrite(str, 1, len, fh);
+    wrote = fwrite(str, 1, len, fh);
+    fputc('\n', fh);
+    wrote += 1;
+    return wrote;
 }
