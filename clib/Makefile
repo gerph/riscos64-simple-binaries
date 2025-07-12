@@ -17,7 +17,7 @@ ALL_TARGETS = libcrt.a
 DEFAULT_GOAL = libcrt.a
 
 
-targetted: export_headers
+targetted: export_headers VersionNum
 	make ${DEFAULT_GOAL}
 
 .PHONY: export
@@ -105,10 +105,11 @@ else
 ${DEFAULT_GOAL}: dockcross-linux-arm64 VersionNum
 	./dockcross-linux-arm64 make ${DEFAULT_GOAL}
 
-endif
-
 VersionNum: ../VersionNum
 	cp $? $@
+
+endif
+
 else
 # We are inside the docker container
 
@@ -163,10 +164,16 @@ MATHS_OBJS = \
 		maths/e_acosf.o \
 		maths/e_asin.o \
 		maths/e_asinf.o \
+		maths/e_atan2.o \
+		maths/e_atan2f.o \
+		maths/e_atan2l.o \
 		maths/e_exp.o \
 		maths/e_expf.o \
 		maths/e_log.o \
 		maths/e_logf.o \
+		maths/e_fmod.o \
+		maths/e_fmodf.o \
+		maths/e_fmodl.o \
 		maths/e_pow.o \
 		maths/e_powf.o \
 		maths/e_rem_pio2.o \
@@ -195,6 +202,9 @@ MATHS_OBJS = \
 		maths/s_floor.o \
 		maths/s_floorf.o \
 		maths/s_floorl.o \
+		maths/s_modf.o \
+		maths/s_modff.o \
+		maths/s_modfl.o \
 		maths/s_nextafter.o \
 		maths/s_nextafterl.o \
 		maths/s_nextafterf.o \
@@ -238,7 +248,13 @@ OBJS = 	\
 		io/io-constants.o \
 		io/io-console.o \
 		io/io-file-init.o \
-		io/io-file.o \
+		io/io-file-misc.o \
+		io/io-file-fopen.o \
+		io/io-file-fopen-lesser.o \
+		io/io-file-read.o \
+		io/io-file-write.o \
+		io/io-file-seek.o \
+		io/io-file-seek-lesser.o \
 		io/io-fgets.o \
 		io/io-fprintf.o \
 		io/io-printf.o \
@@ -250,6 +266,7 @@ OBJS = 	\
 		fs/fs-errors.o \
 		fs/fs-remove.o \
 		fs/fs-rename.o \
+		fs/fs-tmpfile.o \
 		fs/fs-tmpnam.o \
 		\
 		kernel/kernel-backtrace.o \
@@ -304,6 +321,7 @@ OBJS = 	\
 		string/strcase.o \
 		\
 		conversion/atoi.o \
+		conversion/atol.o \
 		conversion/strtod.o \
 		conversion/strtol.o \
 		conversion/strtoul.o \

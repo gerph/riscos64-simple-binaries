@@ -19,7 +19,11 @@ ALL_TARGETS = hello_world \
 				crash \
 				hello_world_printf \
 				simple_hello_world \
-				test_time
+				test_time \
+				test_readfile \
+				test_writefile \
+				test_printf_newline \
+				test_reloc
 
 
 targetted:
