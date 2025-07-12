@@ -9,4 +9,5 @@ dockcross-linux-arm64
 *.syms
 */o32/*
 */util32/*
-
+test-results/
+.robuild.yaml
