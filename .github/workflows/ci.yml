@@ -14,11 +14,16 @@ name: RISC OS
 #   * tag creation for tags beginning with a 'v'
 on:
   push:
-    branches: ["*"]
+    branches: ["master"]
     tags: ["v*"]
   # Pull request events happen on pull request state transitions, so we probably don't want this here.
-  #pull_request:
-  #  branches: ["*"]
+  pull_request:
+    branches: ["*"]
+
+concurrency:
+  # Be nice to the build service and only submit a single job at a time.
+  group: riscos-build-service
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -95,6 +100,8 @@ jobs:
     needs: build
     permissions:
       contents: read
+      checks: write
+      pull-requests: write
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -112,17 +119,30 @@ jobs:
       - name: Obtain prerequisite build tool
         run: |
           # Fetch the build client
-          curl -s -L -o riscos-build-online https://github.com/gerph/robuild-client/releases/download/v0.06/riscos-build-online && chmod +x riscos-build-online
+          curl -s -L -o riscos-build-online https://github.com/gerph/robuild-client/releases/download/v0.07/riscos-build-online && chmod +x riscos-build-online
 
-      - name: Archive files to send
+      - name: Run tests on Absolutes
         run: |
-          # Zip up the source to send to robuild
-          zip -9r /tmp/source-archive.zip absolutes/*,ff8 utilities/*,ffc modules/*,ffa .robuild.yaml
+          tests/run-tests.sh absolutes
 
-      - name: Build through build.riscos.online
+      - name: Run tests on Modules
         run: |
-          # Send the archive file to build service (timeout of 60 seconds)
-          ./riscos-build-online -i /tmp/source-archive.zip -A aarch64 -a off -t 60 -o /tmp/built
+          tests/run-tests.sh modules
+
+      - name: Run tests on Utilities
+        run: |
+          tests/run-tests.sh utilities
+
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v5
+        if: success() || failure() # always run even if the previous step fails
+        with:
+          report_paths: 'test-results/Test-*.xml'
+          comment: true
+          group_suite: true
+          verbose_summary: true
+          detailed_summary: true
+          include_passed: true
 
   # The release only triggers when the thing that was pushed was a tag starting with 'v'
   release:
