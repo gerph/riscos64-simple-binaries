@@ -73,15 +73,16 @@ int __main(const char *cli,
     /**** Build argv ****/
 
 #ifdef BUILD_ARGV_ON_STACK
-    char arg[strlen(cli) + 1];
+    int spacecli = strlen(cli) + 1;
+    char arg[spacecli];
 #else
-    char *arg = malloc(strlen(cli) + 1);
+    char *arg = malloc(spacecli);
     if (!arg)
     {
         __main_fail("Not enough memory for CLI");
     }
 #endif
-    strcpy(arg, cli);
+    memcpy(arg, cli, spacecli);
 
     char *p;
     int argc = 0;
