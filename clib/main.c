@@ -70,9 +70,6 @@ int __main(const char *cli,
     /* Initialise all our libraries now that we safely have a heap */
     _clib_internalinit();
 
-    /* Initialise the IO system */
-    __io_init();
-
     /**** Build argv ****/
 
 #ifdef BUILD_ARGV_ON_STACK

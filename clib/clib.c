@@ -36,6 +36,7 @@ void _clib_internalinit(void)
     __signal_init();
     __clock_init();
     __getenv_init();
+    __io_init();
 }
 
 
