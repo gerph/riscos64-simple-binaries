@@ -23,6 +23,8 @@ ALL_TARGETS = hello_world \
 				test_readfile \
 				test_writefile \
 				test_printf_newline \
+				test_printf \
+				test_printf2 \
 				test_reloc
 
 
