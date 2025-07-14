@@ -357,7 +357,8 @@ int test_sprintf(void)
         printf("* %d Testfaelle fehlgeschlagen\n", failed);
     }
 
-    return 0;
+    /* Return the state depending on whether we had any failures */
+    return (failed == 0) ? 0 : 1;
 }
 
 int main(int argc, char *argv[])
