@@ -143,6 +143,7 @@ jobs:
           verbose_summary: true
           detailed_summary: true
           include_passed: true
+          include_time_in_summary: true
 
   # The release only triggers when the thing that was pushed was a tag starting with 'v'
   release:
