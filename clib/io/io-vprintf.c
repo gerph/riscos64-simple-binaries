@@ -377,6 +377,10 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
                             start = width - 4;
                             memcpy(&buf[start], "NULL", 4);
                         }
+                        else if (value == 0 && params.precision == 0)
+                        {
+                            start = width;
+                        }
 #ifdef ZERO_IS_JUST_ZERO
                         else if (value == 0)
                         {
@@ -429,7 +433,11 @@ int _vprintf(outputter_t *out, const char *format, va_list args)
                     }
                     else
                     {
-                        int size = __cvt_uint64_decimal(value, p);
+                        int size;
+                        if (value == 0 && params.precision == 0 && prefix == NULL)
+                            size = 0;
+                        else
+                            size = __cvt_uint64_decimal(value, p);
                         if (params.align_left)
                         {
                             n += pad_digits(out, &params, size, prefix);
