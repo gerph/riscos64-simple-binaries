@@ -150,12 +150,18 @@ BUILTIN_OBJS = \
 		builtins/fp_mode.o \
 		builtins/addtf3.o \
 		builtins/subtf3.o \
+		builtins/multf3.o \
+		builtins/divtf3.o \
 		builtins/fixtfdi.o \
+		builtins/fixunsitf.o \
+		builtins/fixunstfdi.o \
+		builtins/fixunditf.o \
 		builtins/comparetf2.o \
 		builtins/extenddftf2.o \
 		builtins/extendsftf2.o \
 		builtins/floatditf.o \
-		builtins/trunctfdf2.o
+		builtins/trunctfdf2.o \
+		builtins/trunctfsf2.o
 CFLAGS += -Ibuiltins/
 
 # Maths libraries
@@ -194,6 +200,7 @@ MATHS_OBJS = \
 		maths/s_ceill.o \
 		maths/s_ceilf.o \
 		maths/s_copysign.o \
+		maths/s_copysignl.o \
 		maths/s_copysignf.o \
 		maths/s_cos.o \
 		maths/s_cosf.o \
@@ -216,6 +223,7 @@ MATHS_OBJS = \
 		maths/s_truncf.o \
 		maths/s_truncl.o \
 		maths/s_scalbn.o \
+		maths/s_scalbnl.o \
 
 CFLAGS += -Imaths/include/
 
@@ -323,8 +331,11 @@ OBJS = 	\
 		conversion/atoi.o \
 		conversion/atol.o \
 		conversion/strtod.o \
+		conversion/strtold.o \
 		conversion/strtol.o \
+		conversion/strtoll.o \
 		conversion/strtoul.o \
+		conversion/strtoull.o \
 		\
 		conversion/cvt_decimal.o \
 		conversion/cvt_hex.o \
