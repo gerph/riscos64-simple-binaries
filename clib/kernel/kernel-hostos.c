@@ -12,9 +12,9 @@
  ******************************************************************/
 int _kernel_hostos(void)
 {
-    _kernel_swi_regs regs = {0};
+    _kernel_swi_regs regs = {0, 1};
     _kernel_oserror *err;
-    err = _kernel_swi(OS_CLI, NULL, &regs);
+    err = _kernel_swi(OS_Byte, NULL, &regs);
     if (err)
         return -1;
     return regs.r[0];
