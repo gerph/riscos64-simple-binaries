@@ -35,6 +35,7 @@ int _kernel_escape_seen(void);
 _kernel_oserror *_kernel_setenv(const char *var, const char *val); /* Use NULL to delete */
 _kernel_oserror *_kernel_getenv(const char *var, char *buf, unsigned size);
 
+int _kernel_osbyte(int op, int x, int y);
 int _kernel_osfind(int op, const char *name);
 int _kernel_osfile(int op, const char *name, _kernel_osfile_block *inout);
 int _kernel_osgbpb(int op, unsigned handle, _kernel_osgbpb_block *inout);

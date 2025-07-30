@@ -287,6 +287,7 @@ OBJS = 	\
 		kernel/kernel-swi.o \
 		kernel/kernel-swix.o \
 		kernel/kernel-hostos.o \
+		kernel/kernel-osbyte.o \
 		kernel/kernel-osrdch.o \
 		kernel/kernel-oswrch.o \
 		kernel/kernel-osgbpb.o \
