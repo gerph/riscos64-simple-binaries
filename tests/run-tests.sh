@@ -13,12 +13,26 @@ source "${scriptdir}/progress.sh"
 source "${scriptdir}/junitxml.sh"
 junitxml_tempdir ""
 
+# The binary names to match (or empty for all)
+match_name=
+
+while [[ $# -gt 1 && "${1:0:1}" == '-' ]] ; do
+    if [[ "$1" == "--match" ]] ; then
+        match_name=$2
+        shift
+        shift
+    else
+        echo "Unknown switch '$1'" >&2
+        exit 1
+    fi
+done
+
 arch=aarch64
 dir=${1:-absolutes}
 
 if [[ "$dir" == '-h' || "$dir" == '--help' ]] ; then
     echo "Run tests for the RISC OS binaries."
-    echo "Syntax: run-tests.sh <directory>"
+    echo "Syntax: run-tests.sh [--match <name>] <directory>"
     exit 0
 fi
 
@@ -131,6 +145,11 @@ for file in $(find "$dir" -type f | sort) ; do
         continue
     fi
 
+    if [[ "$match_name" != '' && ! $leaf =~ $match_name ]] ; then
+        # Not one requested; skipping
+        continue
+    fi
+
     params_prefix="${dir}/testparams/${roname}"
 
     echo
@@ -148,6 +167,10 @@ for file in $(find "$dir" -type f | sort) ; do
             while read -r line ; do
                 args+=("$line")
             done < "${params_prefix}.args"
+            if [[ "${#args}" == 0 ]] ; then
+                echo "File '${params_prefix}.args' was not read properly; does it end with a newline?" >&2
+                exit 1
+            fi
         else
             args=("")
         fi
