@@ -38,6 +38,15 @@ typedef struct {
  ******************************************************************/
 _kernel_oserror *_kernel_swi(int swinum, _kernel_swi_regs *in, _kernel_swi_regs *out);
 
+/*************************************************** Gerph *********
+ Function:      _kernel_fpavailable
+ Description:   Determine whether floating point is available
+ Parameters:    none
+ Returns:       0 if no FP is available
+                1 if standard FP is available
+ ******************************************************************/
+int _kernel_fpavailable(void);
+
 
 /* If a function returned a negative error code, and it has also updated the
  * _kernel_last_oserror value, this will be returned:
