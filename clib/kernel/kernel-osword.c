@@ -11,7 +11,7 @@
  Description:   OS_Word interface
  Parameters:    op = OS_Word reason
                 data-> the data for the OS_Word call.
- Returns:       return r1
+ Returns:       return r1, or _kernel_ERROR for failure
  ******************************************************************/
 int _kernel_osword(int op, int *data)
 {
@@ -25,6 +25,7 @@ int _kernel_osword(int op, int *data)
     if (err)
 	{
         _kernel_copyerror(err);
+        return _kernel_ERROR;
 	}
 
     return regs.r[1];

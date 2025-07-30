@@ -5,6 +5,13 @@
 #include "kernel-state.h"
 #include "swis.h"
 
+/*************************************************** Gerph *********
+ Function:      _kernel_last_oserror
+ Description:   Return the pointer to the last error reported by
+                a _kernel function call (or a call that invokes one)
+ Parameters:    none
+ Returns:       pointer to error, or NULL if no error reported yet
+ ******************************************************************/
 _kernel_oserror *_kernel_last_oserror(void)
 {
     return _last_error;

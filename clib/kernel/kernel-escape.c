@@ -8,6 +8,12 @@
 #include "kernel.h"
 #include "swis_os.h"
 
+/*************************************************** Gerph *********
+ Function:      _kernel_escape_seen
+ Description:   Check whether the Escape key has been pressed
+ Parameters:    none
+ Returns:       1 if escape has been pressed, or 0 if not
+ ******************************************************************/
 int _kernel_escape_seen(void)
 {
     /* FIXME: We don't have a handler for escapes, so we're going to use OS_ReadEscapeState */

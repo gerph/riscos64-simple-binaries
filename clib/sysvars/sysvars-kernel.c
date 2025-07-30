@@ -9,6 +9,13 @@
 #include "kernel.h"
 #include "swis.h"
 
+/*************************************************** Gerph *********
+ Function:      _kernel_setenv
+ Description:   Set an environment variable
+ Parameters:    var-> the variable name to set
+                val-> the value to set to, or NULL to delete
+ Returns:       pointer to error if failed, or NULL if successful
+ ******************************************************************/
 _kernel_oserror *_kernel_setenv(const char *var, const char *val)
 {
     _kernel_oserror *err;
@@ -21,6 +28,15 @@ _kernel_oserror *_kernel_setenv(const char *var, const char *val)
     return err;
 }
 
+/*************************************************** Gerph *********
+ Function:      _kernel_getenv
+ Description:   Read the environment variable into a supplied buffer,
+                as a 0-terminated string
+ Parameters:    var-> the variable name to read
+                buf-> the buffer to use to read the string into
+                size = the size of the buffer
+ Returns:       pointer to error if failed, or NULL if successful
+ ******************************************************************/
 _kernel_oserror *_kernel_getenv(const char *var, char *buf, unsigned size)
 {
     _kernel_oserror *err;

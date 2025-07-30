@@ -13,7 +13,7 @@
                 x = BBC X register
                 y = BBC Y register
  Returns:       X | (Y<<8) | (C<<16) ; C is never used in 64bit
-                _kernel_oserror for failure
+                _kernel_ERROR for failure
  ******************************************************************/
 int _kernel_osbyte(int op, int x, int y)
 {
@@ -24,7 +24,7 @@ int _kernel_osbyte(int op, int x, int y)
     regs.r[1] = x;
     regs.r[2] = y;
 
-    err = _kernel_swi(OS_Find, &regs, &regs);
+    err = _kernel_swi(OS_Byte, &regs, &regs);
     if (err)
 	{
         _kernel_copyerror(err);

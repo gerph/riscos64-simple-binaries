@@ -24,30 +24,39 @@ typedef struct {
    const char * wild_fld;      /* points to wildcarded filename to match */
 } _kernel_osgbpb_block;
 
+
 #define _KERNEL_NOXBIT (1lu<<31)    /* Always clear the X bit (otherwise always set) */
+/*************************************************** Gerph *********
+ Function:      _kernel_swi
+ Description:   Call an arbitrary RISC OS SWI number.
+ Parameters:    swinum = SWI number. May have _KERNEL_NOXBIT OR'd
+                         into it to indicate that the SWI not set
+                         the X bit but instead raise an error.
+                in-> the registers to set before calling the SWI
+                out-> the register values on exit
+ Returns:       pointer to error, or NULL if no error reported
+ ******************************************************************/
 _kernel_oserror *_kernel_swi(int swinum, _kernel_swi_regs *in, _kernel_swi_regs *out);
 
-int _kernel_oscli(const char *cli);
-_kernel_oserror *_kernel_last_oserror(void);
-
-int _kernel_escape_seen(void);
-
-_kernel_oserror *_kernel_setenv(const char *var, const char *val); /* Use NULL to delete */
-_kernel_oserror *_kernel_getenv(const char *var, char *buf, unsigned size);
-
-int _kernel_osbyte(int op, int x, int y);
-int _kernel_osfind(int op, const char *name);
-int _kernel_osfile(int op, const char *name, _kernel_osfile_block *inout);
-int _kernel_osgbpb(int op, unsigned handle, _kernel_osgbpb_block *inout);
-int _kernel_osargs(int op, unsigned handle, int arg);
-int _kernel_osword(int op, int *data);
 
 /* If a function returned a negative error code, and it has also updated the
  * _kernel_last_oserror value, this will be returned:
  */
 #define _kernel_ERROR (-2)
 
+/*************************************************** Gerph *********
+ Function:      _kernel_last_oserror
+ Description:   Return the pointer to the last error reported by
+                a _kernel function call (or a call that invokes one)
+                Unless otherwise mentioned, all _kernel_ERROR returns
+                should set this error.
+ Parameters:    none
+ Returns:       pointer to error, or NULL if no error reported yet
+ ******************************************************************/
+_kernel_oserror *_kernel_last_oserror(void);
 
+
+/* Host values (as returned by OS_Byte 0, 1) */
 #define _kernel_HOST_UNDEFINED    -1
 #define _kernel_BBC_MOS1_0         0
 #define _kernel_BBC_MOS1_2         1
@@ -83,6 +92,112 @@ int _kernel_osrdch(void);
  Returns:       -2 if failure, 0 if success
  ******************************************************************/
 int _kernel_oswrch(int c);
+
+/*************************************************** Gerph *********
+ Function:      _kernel_osfind
+ Description:   OS_Find interface
+ Parameters:    op = OS_Find reason
+                name = filename
+ Returns:       Open: 0 if open failed (no error), or file handle, -2 failure
+                Close: 0 for success -2 for failure
+ ******************************************************************/
+int _kernel_osfind(int op, const char *name);
+
+/*************************************************** Gerph *********
+ Function:      _kernel_osargs
+ Description:   OS_Args interface
+ Parameters:    op = OS_Args reason
+                handle = file handle
+                arg = additional argument
+ Returns:       if op|handle == 0: returns r0
+                else: returns r2
+ ******************************************************************/
+int _kernel_osargs(int op, unsigned handle, int arg);
+
+/*************************************************** Gerph *********
+ Function:      _kernel_osgbpb
+ Description:   OS_GBPB interface to read bytes from the FS
+ Parameters:    op = OS_GBPB operation
+                handle = file handle to operate on
+                inout = the parameters to pass through to the OS_GBPB interface
+ Returns:       _kernel_ERROR for failure, or 0 for success (-1 was C set)
+ ******************************************************************/
+int _kernel_osgbpb(int op, unsigned handle, _kernel_osgbpb_block *inout);
+
+/*************************************************** Gerph *********
+ Function:      _kernel_osfile
+ Description:   Call OS_File for file based operations
+ Parameters:    op = the operation reason
+                name-> the filename to operate on
+                inout-> the block for input/output parameters:
+                            load = load address (r2)
+                            exec = exec address (r3)
+                            start = start address for file operations (r4)
+                            end = end address for file operations (r5)
+ Returns:       r0 on return, or _kernel_ERROR for failure
+ ******************************************************************/
+int _kernel_osfile(int op, const char *name, _kernel_osfile_block *inout);
+
+/*************************************************** Gerph *********
+ Function:      _kernel_osbyte
+ Description:   OS_Byte interface
+ Parameters:    op = OS_Byte reason
+                x = BBC X register
+                y = BBC Y register
+ Returns:       X | (Y<<8) | (C<<16) ; C is never used in 64bit
+                _kernel_ERROR for failure
+ ******************************************************************/
+int _kernel_osbyte(int op, int x, int y);
+
+/*************************************************** Gerph *********
+ Function:      _kernel_osword
+ Description:   OS_Word interface
+ Parameters:    op = OS_Word reason
+                data-> the data for the OS_Word call.
+ Returns:       return r1, or _kernel_ERROR for failure
+ ******************************************************************/
+int _kernel_osword(int op, int *data);
+
+/*************************************************** Gerph *********
+ Function:      _kernel_escape_seen
+ Description:   Check whether the Escape key has been pressed
+ Parameters:    none
+ Returns:       1 if escape has been pressed, or 0 if not
+ ******************************************************************/
+int _kernel_escape_seen(void);
+
+/*************************************************** Gerph *********
+ Function:      _kernel_setenv
+ Description:   Set an environment variable
+ Parameters:    var-> the variable name to set
+                val-> the value to set to, or NULL to delete
+ Returns:       pointer to error if failed, or NULL if successful
+ ******************************************************************/
+_kernel_oserror *_kernel_setenv(const char *var, const char *val);
+
+/*************************************************** Gerph *********
+ Function:      _kernel_getenv
+ Description:   Read the environment variable into a supplied buffer,
+                as a 0-terminated string
+ Parameters:    var-> the variable name to read
+                buf-> the buffer to use to read the string into
+                size = the size of the buffer
+ Returns:       pointer to error if failed, or NULL if successful
+ ******************************************************************/
+_kernel_oserror *_kernel_getenv(const char *var, char *buf, unsigned size);
+
+
+/*************************************************** Gerph *********
+ Function:      _kernel_oscli
+ Description:   Run a CLI command and report whether it errored - this
+                may replace the current application.
+ Parameters:    cmd-> the command to run
+ Returns:       1 if ok, 0 if failed
+ NOTE:          This is implemented according to the actual implementation.
+                The PRM implies that the return indicates that there is an error.
+ ******************************************************************/
+int _kernel_oscli(const char *cli);
+
 
 /*************************************************** Gerph *********
  Function:      _kernel_backtrace
@@ -129,4 +244,3 @@ const char *_kernel_procname(uint64_t pc);
 int _kernel_system(const char *cmd, int chain);
 
 #endif
-
