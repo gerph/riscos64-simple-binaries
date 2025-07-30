@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include "kernel.h"
+#include "kernel-state.h"
 #include "swis.h"
 #include "swis_os.h"
 
@@ -23,7 +24,10 @@ int _kernel_osfind(int op, const char *name)
 
     err = _kernel_swi(OS_Find, &regs, &regs);
     if (err)
-        return -2;
+	{
+        _kernel_copyerror(err);
+		return _kernel_ERROR;
+	}
 
     return regs.r[0];
 }

@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include "kernel.h"
+#include "kernel-state.h"
 #include "swis.h"
 #include "swis_os.h"
 
@@ -35,5 +36,11 @@ int _kernel_osgbpb(int op, unsigned handle, _kernel_osgbpb_block *inout)
     inout->buf_len = regs.r[5];
     inout->wild_fld = regs.r[6];
 
-    return err ? -2 : 0;
+    if (err)
+	{
+        _kernel_copyerror(err);
+		return _kernel_ERROR;
+	}
+
+    return 0;
 }

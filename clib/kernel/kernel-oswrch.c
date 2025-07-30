@@ -17,6 +17,10 @@ int _kernel_oswrch(int c)
     _kernel_oserror *err;
     err = os_writec(c);
     if (err)
+	{
         _kernel_copyerror(err);
-    return (err ? -2 : 0);
+		return _kernel_ERROR;
+	}
+
+    return 0;
 }

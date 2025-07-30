@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include "kernel.h"
+#include "kernel-state.h"
 #include "swis.h"
 #include "swis_os.h"
 
@@ -21,6 +22,10 @@ int _kernel_osword(int op, int *data)
     regs.r[1] = data;
 
     err = _kernel_swi(OS_Word, &regs, &regs);
+    if (err)
+	{
+        _kernel_copyerror(err);
+	}
 
     return regs.r[1];
 }

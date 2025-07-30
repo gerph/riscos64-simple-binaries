@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include "kernel.h"
+#include "kernel-state.h"
 #include "swis.h"
 #include "swis_os.h"
 
@@ -24,6 +25,11 @@ int _kernel_osargs(int op, unsigned handle, int arg)
     regs.r[2] = arg;
 
     err = _kernel_swi(OS_Args, &regs, &regs);
+    if (err)
+    {
+        _kernel_copyerror(err);
+        return _kernel_ERROR;
+    }
 
     if (op == 0 && handle == 0)
         return regs.r[0];
