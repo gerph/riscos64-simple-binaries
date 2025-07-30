@@ -27,7 +27,7 @@ int puts(const char *ptr)
         ptr = "<NULL>";
 
     if (!IO_IS_CONSOLE(stdout))
-        return fputs(stdout, ptr);
+        return fputs(ptr, stdout);
 
     int total = strlen(ptr);
     int wrote = 0;
