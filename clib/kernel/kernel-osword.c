@@ -19,7 +19,7 @@ int _kernel_osword(int op, int *data)
     _kernel_swi_regs regs;
 
     regs.r[0] = op;
-    regs.r[1] = data;
+    regs.r[1] = (int)data;
 
     err = _kernel_swi(OS_Word, &regs, &regs);
     if (err)

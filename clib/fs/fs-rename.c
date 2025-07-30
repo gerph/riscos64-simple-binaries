@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include "swis_os.h"
 
+#include "fs-errors.h"
+
 int rename(const char *old, const char *new)
 {
     _kernel_oserror *err;

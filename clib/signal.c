@@ -9,6 +9,7 @@
 #include <signal.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 #include "kernel.h"
 #include "swis.h"
 #include "swis_os.h"
