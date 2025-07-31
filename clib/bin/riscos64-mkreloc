@@ -290,7 +290,7 @@ while (<$ifh>)
                 {
                     $valuesym = '__CodeStart';
                 }
-                elsif ($valuesym =~ /^\.rodata/)
+                elsif ($valuesym =~ /^\.(rodata|data\.ro)/ )
                 {
                     $valuesym = '__RODataStart';
                 }

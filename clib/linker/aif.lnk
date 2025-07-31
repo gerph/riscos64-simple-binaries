@@ -58,7 +58,9 @@ SECTIONS
     .rodata . : {
         __RODataStart = ABSOLUTE(.);
         *(.rodata)
+        *(.data.ro)
         *(SORT(.rodata.*))
+        *(SORT(.data.ro.*))
         *(.riscos.reloc)
 
         . = ALIGN(8);
