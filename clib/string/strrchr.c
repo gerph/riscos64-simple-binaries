@@ -11,5 +11,7 @@ char *strrchr(const char *s, int want)
             lastchar = (char*)s;
         s++;
     }
+    if (*s == want)
+        lastchar = (char*)s;
     return lastchar;
 }

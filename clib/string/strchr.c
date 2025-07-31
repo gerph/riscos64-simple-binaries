@@ -8,6 +8,8 @@ char *strchr(const char *s, int want)
     {
         s++;
     }
+    if (*s == want)
+        return (char *)s;
     if (*s == '\0')
         return NULL;
     return (char *)s;
