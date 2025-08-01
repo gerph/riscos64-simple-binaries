@@ -1,0 +1,51 @@
+---
+# RISC OS 64 update of Wiki for changelog
+#
+# The changelog job is updated when the master branch is updated.
+#
+
+name: Change log
+
+# Controls when the action will run. Triggers the workflow on:
+#   * push on master.
+on:
+  push:
+    branches: ["master"]
+
+concurrency:
+  # Be nice to the build service and only submit a single job at a time.
+  group: wiki-update
+  cancel-in-progress: false
+
+jobs:
+  changelog:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      - name: Construct the markdown for the changelog
+        run: |
+          mkdir wiki-update
+          make full-changelog > wiki-update/Changes.md
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Changeog
+          path: wiki-update/Changes.md
+
+      # See: https://github.com/marketplace/actions/wiki-page-creator-action
+      - name: Upload Release Notes to Wiki
+        uses: docker://decathlon/wiki-page-creator-action:latest
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+          ACTION_MAIL: gerph@gerph.org
+          ACTION_NAME: Charles Ferguson
+          OWNER: gerph
+          REPO_NAME: riscos64-clib
+          MD_FOLDER: wiki-update

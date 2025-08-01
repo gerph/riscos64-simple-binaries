@@ -159,3 +159,7 @@ The format has been extended, thus:
 The utility file will be entered at the offset given at offset &18.
 
 Future versions of this specification may require that the utility be loaded at a page boundary plus 4 bytes, as modules are.
+
+## Change history
+
+See [Changes](https://github.com/gerph/riscos64-clib/wiki/Changes) for summary of the changes in each release.
