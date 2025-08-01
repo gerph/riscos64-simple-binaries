@@ -19,6 +19,15 @@ on:
   # Pull request events happen on pull request state transitions, so we probably don't want this here.
   pull_request:
     branches: ["*"]
+    paths:
+      # Only run the job if the changes affect the C library
+      - 'clib/**'
+      - 'absolutes/**'
+      - 'utilities/**'
+      - 'modules/**'
+      - 'robuild64'
+      - 'VersionNum'
+      - 'tests/**'
 
 concurrency:
   # Be nice to the build service and only submit a single job at a time.

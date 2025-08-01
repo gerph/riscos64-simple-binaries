@@ -1,3 +1,4 @@
+*.pyc
 dockcross-linux-arm64
 *,ff8
 *,ffa
