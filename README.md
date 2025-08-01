@@ -1,6 +1,6 @@
-# Simple RISC OS 64 binaries
+# RISC OS 64 C library and binaries
 
-This repository contains some build tools for RISC OS 64bit binaries.
+This repository contains a C library for AArch64 RISC OS (RISC OS 64). The library is in the process of being developed to allow modules and absolutes to be used within a 64-bit RISC OS environment.
 
 ## Usage
 
