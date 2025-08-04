@@ -18,6 +18,7 @@ import sys
 import struct
 
 debug = False
+truncate_overlong = True
 
 if len(sys.argv) < 3:
     exit("Syntax: riscos64-addsignatures <map/syms file> <binary>")
@@ -134,22 +135,38 @@ for addr, symbol in sorted(functions.items()):
         # We'll assume it's an assembler function or similar and just ignore.
         pass
     else:
+        try:
+            patch = bytearray(symbol) + b'\0'
+        except TypeError:
+            patch = bytearray(symbol, 'ascii') + b'\0'
+        while len(patch) & 3:
+            patch += b'\0'
+
+        shown = False
+        if truncate_overlong:
+            # We need to work out how long we can make this before it's truncated
+            if currently[0:4] != nop_bytes:
+                while currently[0:4] != nop_bytes and currently != '':
+                    currently = currently[4:]
+                    symbol_start += 4
+                    symbol_len -= 4
+                    patch = patch[:-5] + b'\0'
+                space_needed = 4 + symbol_len
+                if debug and currently != '':
+                    shown = True
+                    print("Symbol '%s' truncated to '%s' at &%x" % (symbol_name, symbol_name[0:symbol_len - 1], addr))
         if currently == nop_bytes * int(space_needed / 4):
             if debug:
-                print("Symbol '%s' can be patched at address &%08x" % (symbol_name, addr))
+                if not shown:
+                    print("Symbol '%s' patched at address &%08x" % (symbol_name, addr))
             pre = bin_data[:symbol_start]
             post = bin_data[symbol_start + space_needed:]
-            try:
-                patch = bytearray(symbol) + b'\0'
-            except TypeError:
-                patch = bytearray(symbol, 'ascii') + b'\0'
-            while len(patch) & 3:
-                patch += b'\0'
             patch += bytearray([symbol_len, 0,0,255])
             bin_data = pre + patch + post
             if len(patch) != len(currently):
                 exit("Internal consistency error: patch %r is not the same length as replaced %r" % (patch, currently))
         else:
+
             print("Warning: Failed to patch symbol name '%s' at &%x" % (symbol_name, addr))
             if debug:
                 print("  Currently: %r" % (currently,))
