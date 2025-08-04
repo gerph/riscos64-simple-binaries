@@ -112,7 +112,30 @@ void _env_escape(void)
  ******************************************************************/
 void _env_error(_kernel_oserror *err)
 {
-    _clib_finalise();
+    static int count = 0;
+
+    count++;
+
+    os_newline();
+    if (count == 1 || count == 2)
+    {
+        if (count == 1)
+            os_write0("Error: ");
+        else
+            os_write0("Re-entered error handler with error: ");
+        os_write0(err->errmess);
+        os_newline();
+
+        _kernel_backtrace();
+    }
+    else
+    {
+        os_write0("Re-entered error handler (possible recursion)");
+        os_newline();
+    }
+
+    if (count < 3)
+        _clib_finalise();
     _env_restore();
     os_generateerror(err);
 }
