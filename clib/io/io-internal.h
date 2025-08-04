@@ -14,6 +14,12 @@
 
 /* For fields, see:
      /usr/xcc/aarch64-unknown-linux-gnu/aarch64-unknown-linux-gnu/sysroot/usr/include/bits/types/struct_FILE.h
+   We use:
+    * `_flags` - to mark our streams as valid and their capabilities.
+    * `_shortbuf[0]` - for the character which was ungetc'd.
+    * `_fileno` - for the RISC OS file handle that is used.
+    * `_chain` - links together all the FILE blocks to allow them to be freed.
+    * `_markers` - may contain the filename used by the file when 'delete on close' set.
  */
 
 /* Flags we use: */
@@ -46,5 +52,7 @@ struct _IO_marker {
 #define IO_IS_KEYBOARD(fh)   (((fh)->_flags & (_IO_CONSOLE | _IO_READABLE)) == (_IO_CONSOLE | _IO_READABLE))
 #define IO_IS_SCREEN(fh)     (((fh)->_flags & (_IO_CONSOLE | _IO_WRITABLE)) == (_IO_CONSOLE | _IO_WRITABLE))
 
+/* fileno used for consoles */
+#define IO_FD_CONSOLE       (-2)
 
 #endif

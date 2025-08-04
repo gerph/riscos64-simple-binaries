@@ -86,11 +86,13 @@ void _fclose(FILE *fh)
     {
         /* Reset the FILE for stdin */
         fh->_flags = _IO_MAGIC | _IO_READABLE | _IO_CONSOLE;
+        fh->_fileno = IO_FD_CONSOLE;
     }
     else if (fh == stdout || fh == stderr)
     {
         /* Reset the FILE for stdout/stderr */
         fh->_flags = _IO_MAGIC | _IO_WRITABLE | _IO_CONSOLE;
+        fh->_fileno = IO_FD_CONSOLE;
     }
     else
     {

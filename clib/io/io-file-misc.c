@@ -57,7 +57,7 @@ int fileno(FILE *fh)
     if (IO_IS_CONSOLE(fh))
     {
         errno = EBADF;
-        return -2;
+        return IO_FD_CONSOLE;
     }
 
     return fh->_fileno;
@@ -84,7 +84,7 @@ void clearerr(FILE *fh)
 
 int isatty(int fd)
 {
-    if (fd == -2)
+    if (fd == IO_FD_CONSOLE)
         return 1;
     return 0;
 }
