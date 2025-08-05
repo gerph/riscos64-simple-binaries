@@ -38,9 +38,9 @@
     MOV     x10, #4                     // OS_ReadC
     ORR     x10, x10, #0x20000
     SVC     #0
-    CSINV   x0, x0, xzr, VS
+    CSINV   x0, x0, xzr, VC
     CMP     x1, #1
-    MOV     x2, #-27
+    MOV     x1, #-27
     CSEL    x0, x0, x1, NE
     LDP     x29, x30, [sp], #16
     RET
