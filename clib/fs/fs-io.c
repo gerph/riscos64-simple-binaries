@@ -154,6 +154,25 @@ static long int __fs_read_pos(FILE *fh)
 }
 
 
+
+static int __fs_read_line(FILE *fh, char *str, size_t size)
+{
+    char *p;
+    for (p = str; p - str < size - 1; p++)
+    {
+        int c = __fs_read_byte(fh);
+        if (c < 0)
+            return c;
+        if (c != '\n')
+            *p = c;
+        else
+            break;
+    }
+    *p = '\0';
+    return 0;
+}
+
+
 /*************************************************** Gerph *********
  Function:      __fs_setup_dispatch
  Description:   Set up the dispatch table used by the I/O system
@@ -166,6 +185,7 @@ void __fs_setup_dispatch(FILE *fh)
     {
         __fs_dispatch.read_multiple = __fs_read_multiple;
         __fs_dispatch.read_byte = __fs_read_byte;
+        __fs_dispatch.read_line = __fs_read_line;
         __fs_dispatch.write_multiple = __fs_write_multiple;
         __fs_dispatch.write_byte = __fs_write_byte;
         __fs_dispatch.close = __fs_close;

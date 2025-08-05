@@ -45,6 +45,7 @@
 /* All IO dispatcher functions return either a value for result, or -ERRNO */
 typedef int (*_io_read_multiple)(FILE *fh, void *ptr, size_t size);
 typedef int (*_io_read_byte)(FILE *fh);
+typedef int (*_io_read_line)(FILE *fh, char *ptr, size_t size); /* read to \n */
 typedef int (*_io_write_multiple)(FILE *fh, const void *ptr, size_t size);
 typedef int (*_io_write_byte)(FILE *fh, int c);
 typedef int (*_io_close)(FILE *fh);
@@ -67,6 +68,7 @@ typedef struct _io_outputter_s {
 typedef struct _io_dispatch_s {
     _io_read_multiple   read_multiple;
     _io_read_byte       read_byte;
+    _io_read_line       read_line;
     _io_write_multiple  write_multiple;
     _io_write_byte      write_byte;
     _io_close           close;

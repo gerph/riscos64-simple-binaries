@@ -9,12 +9,62 @@
 #include <stdlib.h>
 
 #include "kernel.h"
+#include "riscos/NewErrors.h"
+
 #include "swis.h"
 #include "swis_os.h"
 
 #include "io/io-internal.h"
 
 static _io_dispatch_t __con_dispatch;
+
+
+static const struct {
+    int32_t errnum;
+    char errmess[8];
+} err_Escape = { ErrorNumber_Escape, "Escape" };
+
+
+/*************************************************** Gerph *********
+ Function:      os_readline
+ Description:   Call OS_ReadLine for input
+ Parameters:    line-> line to read
+                len = max length including terminator
+ Returns:       pointer to error if failed, or NULL if ok
+ ******************************************************************/
+static _kernel_oserror *os_readline(char *line, int len)
+{
+    _kernel_oserror *err;
+    int read;
+    uint32_t flags = 0;
+#ifdef __riscos64
+    err = _swix(OS_ReadLine32, _INR(0, 4)|_OUTR(0, 1), line, len, 32, 128, 0, &flags, &read);
+    if (err)
+        return err;
+    if (flags)
+        goto escape;
+    line[read] = '\0';
+    return NULL;
+#else
+    err = _swix(OS_ReadLine32, _INR(0, 4)|_OUT(1)|_OUT(_FLAGS), line, len, 32, 128, 0, &read, &flags);
+#ifndef ErrorNumber_ModuleBadSWI
+#define ErrorNumber_ModuleBadSWI          0x110
+#endif
+    if (err && err->errnum == ErrorNumber_ModuleBadSWI)
+    {
+        err = _swix(OS_ReadLine, _INR(0, 4)|_OUT(1)|_OUT(_FLAGS), line, len, 32, 128, 0, &read, &flags);
+    }
+    if (err)
+        return err;
+    if (flags & _C)
+        goto escape;
+    line[read] = '\0';
+    return NULL;
+#endif
+
+escape:
+    return (_kernel_oserror *)&err_Escape;
+}
 
 
 static int __con_close(FILE *fh)
@@ -113,6 +163,22 @@ static long int __con_read_pos(FILE *fh)
 }
 
 
+static int __con_read_line(FILE *fh, char *str, size_t size)
+{
+    _kernel_oserror *err;
+    int len;
+    err = os_readline(str, size - 1);
+    if (err)
+    {
+        return -EINTR;
+    }
+    /* No error, but the line should be returned with the newline present */
+    len = strlen(str);
+    str[len] = '\n';
+    str[len + 1] = '\0';
+    return 0;
+}
+
 /*************************************************** Gerph *********
  Function:      __con_setup_dispatch
  Description:   Set up the dispatch table used by the I/O system
@@ -125,6 +191,7 @@ void __con_setup_dispatch(FILE *fh)
     {
         __con_dispatch.read_multiple = __con_read_multiple;
         __con_dispatch.read_byte = __con_read_byte;
+        __con_dispatch.read_line = __con_read_line;
         __con_dispatch.write_multiple = __con_write_multiple;
         __con_dispatch.write_byte = __con_write_byte;
         __con_dispatch.close = __con_close;
