@@ -10,13 +10,7 @@
 
 int feof(FILE *fh)
 {
-    int32_t at_eof;
     int result;
-    if (!fh)
-    {
-        errno = EBADF;
-        return -1;
-    }
 
     CHECK_MAGIC(fh, -1);
 
@@ -38,12 +32,6 @@ int ferror(FILE *fh)
 
 int fileno(FILE *fh)
 {
-    if (!fh)
-    {
-        errno = EBADF;
-        return -1;
-    }
-
     CHECK_MAGIC(fh, -1);
 
     if (IO_IS_CONSOLE(fh))

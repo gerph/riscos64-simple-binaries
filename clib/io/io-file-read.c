@@ -10,13 +10,11 @@
 
 size_t fread(void *ptr, size_t size, size_t nitems, FILE *fh)
 {
-    if (!fh)
-        return 0;
-
     CHECK_MAGIC(fh, 0);
 
     if (!IO_IS_READABLE(fh))
     {
+        errno = EPERM;
         return 0;
     }
 
@@ -81,17 +79,13 @@ size_t fread(void *ptr, size_t size, size_t nitems, FILE *fh)
 int fgetc(FILE *fh)
 {
     int32_t c;
-    if (!fh)
-    {
-        errno = EBADF;
-        return EOF;
-    }
 
     CHECK_MAGIC(fh, EOF);
 
     if (!IO_IS_READABLE(fh))
     {
-        return 0;
+        errno = EPERM;
+        return EOF;
     }
 
     if (fh->_flags & _IO_CHARPUSHED)
@@ -119,17 +113,12 @@ int getc(FILE *fh)
 
 int ungetc(int c, FILE *fh)
 {
-    if (!fh)
-    {
-        errno = EBADF;
-        return -1;
-    }
-
     CHECK_MAGIC(fh, -1);
 
     if (!IO_IS_READABLE(fh))
     {
-        return 0;
+        errno = EPERM;
+        return EOF;
     }
 
     if (fh->_flags & _IO_CHARPUSHED)

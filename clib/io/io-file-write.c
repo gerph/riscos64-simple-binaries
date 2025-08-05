@@ -10,20 +10,15 @@
 
 size_t fwrite(const void *ptr, size_t size, size_t nitems, FILE *fh)
 {
-    if (!fh)
-    {
-        errno = EBADF;
-        return 0;
-    }
-    if (size == 0 || nitems == 0)
-        return 0;
-
     CHECK_MAGIC(fh, 0);
 
     if (!IO_IS_WRITABLE(fh))
     {
+        errno = EPERM;
         return 0;
     }
+    if (size == 0 || nitems == 0)
+        return 0;
 
     size_t totransfer = size * nitems;
     int transferred = IO_DISPATCH(fh)->write_multiple(fh, ptr, totransfer);
@@ -60,16 +55,11 @@ size_t fwrite(const void *ptr, size_t size, size_t nitems, FILE *fh)
 
 int fflush(FILE *fh)
 {
-    if (!fh)
-    {
-        errno = EBADF;
-        return -1;
-    }
-
     CHECK_MAGIC(fh, -1);
 
     if (!IO_IS_WRITABLE(fh))
     {
+        errno = EPERM;
         return 0;
     }
 
@@ -89,16 +79,11 @@ int fflush(FILE *fh)
 
 int fputc(int c, FILE *fh)
 {
-    if (!fh)
-    {
-        errno = EBADF;
-        return -1;
-    }
-
     CHECK_MAGIC(fh, -1);
 
     if (!IO_IS_WRITABLE(fh))
     {
+        errno = EPERM;
         return 0;
     }
 
@@ -123,11 +108,6 @@ int putc(int c, FILE *fh)
 
 int fputs(const char *str, FILE *fh)
 {
-    if (!fh)
-    {
-        errno = EBADF;
-        return -1;
-    }
     if (str == NULL)
         str = "<NULL>";
 

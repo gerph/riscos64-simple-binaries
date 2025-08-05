@@ -9,7 +9,10 @@
 FILE *freopen(const char *filename, const char *mode, FILE *oldfh)
 {
     if (!oldfh)
+    {
+        errno = EBADF;
         return NULL;
+    }
     if (filename == NULL)
     {
         /* Request to change the mode - not supported and is ignored */

@@ -35,7 +35,7 @@
 #define _IO_MAGIC_MASK (0xFFFF0000u)
 #define CHECK_MAGIC(fh, fail_code) \
                         do { \
-                            if ( ((fh)->_flags & _IO_MAGIC_MASK) != _IO_MAGIC ) \
+                            if ( (fh) == NULL || (((fh)->_flags & _IO_MAGIC_MASK) != _IO_MAGIC) ) \
                             { \
                                 errno = EBADF; \
                                 return (fail_code); \

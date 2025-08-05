@@ -11,17 +11,12 @@
 int fseek(FILE *fh, long int pos, int whence)
 {
     int result;
-    if (!fh)
-    {
-        errno = EBADF;
-        return -1;
-    }
 
     CHECK_MAGIC(fh, -1);
 
     if (IO_IS_CONSOLE(fh))
     {
-        /* FIXME: Should set errno? */
+        errno = EPERM;
         return -1;
     }
 
@@ -43,18 +38,12 @@ int fseek(FILE *fh, long int pos, int whence)
 long int ftell(FILE *fh)
 {
     long int pos;
-    _kernel_oserror *err;
-    if (!fh)
-    {
-        errno = EBADF;
-        return -1;
-    }
 
     CHECK_MAGIC(fh, -1);
 
     if (IO_IS_CONSOLE(fh))
     {
-        /* FIXME: Should set errno? */
+        errno = EPERM;
         return -1;
     }
 

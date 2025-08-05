@@ -23,34 +23,5 @@ int putchar(int c)
 
 int puts(const char *ptr)
 {
-    if (ptr == NULL)
-        ptr = "<NULL>";
-
-    if (!IO_IS_CONSOLE(stdout))
-        return fputs(ptr, stdout);
-
-    int total = strlen(ptr);
-    int wrote = 0;
-
-    while (total)
-    {
-        const char *next_nl = memchr(ptr, '\n', total);
-        if (next_nl == NULL)
-        {
-            os_writen(ptr, total);
-            wrote += total;
-            break;
-        }
-        int to_nl = (next_nl - (const char *)ptr);
-        if (to_nl)
-            os_writen(ptr, to_nl);
-        os_newline();
-        wrote += to_nl + 1;
-        total -= to_nl + 1;
-        ptr = ((const char *)ptr) + to_nl + 1;
-    }
-    os_newline();
-    wrote += 1;
-
-    return wrote;
+    return fputs(ptr, stdout);
 }

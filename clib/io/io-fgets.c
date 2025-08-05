@@ -55,17 +55,13 @@ escape:
 char *fgets(char *str, int size, FILE *fh)
 {
     char *p;
-    if (!fh)
-    {
-        /* FIXME: Set errno ? */
-        return NULL;
-    }
 
     CHECK_MAGIC(fh, NULL);
 
     if (!IO_IS_READABLE(fh))
     {
-        return 0;
+        errno = EPERM;
+        return NULL;
     }
 
     if (IO_IS_KEYBOARD(fh))
