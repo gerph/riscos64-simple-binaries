@@ -5,11 +5,14 @@
 #include "swis.h"
 #include "swis_os.h"
 #include "io/io-internal.h"
+#include "io/io-consoleio.h"
 #include "fs/fs-errors.h"
+#include "fs/fs-io.h"
 #include "io/io-file-fopen.h"
 #include <errno.h>
 
 extern FILE *__file_list;
+
 
 /*************************************************** Gerph *********
  Function:      _fopen
@@ -55,6 +58,9 @@ bool _fopen(const char *filename, const char *mode, FILE *fh)
         fh->_flags |= _IO_WRITABLE;
     if (reason & 0x40)
         fh->_flags |= _IO_READABLE;
+
+    __fs_setup_dispatch(fh);
+
     return true;
 }
 
@@ -69,30 +75,25 @@ void _fclose(FILE *fh)
 {
     if (fh->_fileno)
     {
-        _kernel_osfind(0, (const char *)fh->_fileno); /* Close file */
-        fh->_fileno = 0;
-        if (fh->_flags & _IO_DELETEONCLOSE)
-        {
-            /* Delete the file */
-            if (fh->_markers)
-            {
-                _kernel_osfile(6, fh->_markers->filename, NULL);
-                free(fh->_markers);
-                fh->_markers = NULL;
-            }
-        }
+        IO_DISPATCH(fh)->close(fh);
     }
     if (fh == stdin)
     {
         /* Reset the FILE for stdin */
         fh->_flags = _IO_MAGIC | _IO_READABLE | _IO_CONSOLE;
         fh->_fileno = IO_FD_CONSOLE;
+
+        /* Reset console dispatcher */
+        __con_setup_dispatch(fh);
     }
     else if (fh == stdout || fh == stderr)
     {
         /* Reset the FILE for stdout/stderr */
         fh->_flags = _IO_MAGIC | _IO_WRITABLE | _IO_CONSOLE;
         fh->_fileno = IO_FD_CONSOLE;
+
+        /* Reset console dispatcher */
+        __con_setup_dispatch(fh);
     }
     else
     {

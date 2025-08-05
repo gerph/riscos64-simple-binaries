@@ -42,7 +42,8 @@ int puts(const char *ptr)
             break;
         }
         int to_nl = (next_nl - (const char *)ptr);
-        os_writen(ptr, to_nl);
+        if (to_nl)
+            os_writen(ptr, to_nl);
         os_newline();
         wrote += to_nl + 1;
         total -= to_nl + 1;

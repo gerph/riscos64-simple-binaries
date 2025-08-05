@@ -1,9 +1,10 @@
 #include <stdarg.h>
 #include <string.h>
 #include "io-vprintf.h"
+#include "io-internal.h"
 
 typedef struct outputterstr_t {
-    outputter_t out;
+    _io_outputter_t out;
     char *start;
     char *p;
     int size;

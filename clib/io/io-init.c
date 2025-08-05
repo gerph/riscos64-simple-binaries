@@ -1,6 +1,6 @@
 /*******************************************************************
- * File:        io-file-init
- * Purpose:     I/O file initialisation/finalisation
+ * File:        io-init
+ * Purpose:     I/O initialisation/finalisation
  * Author:      Gerph
  * Date:        11 Aug 2024
  ******************************************************************/
@@ -10,6 +10,7 @@
 #include <kernel.h>
 
 #include "io/io-internal.h"
+#include "io/io-consoleio.h"
 
 FILE *__file_list;
 #pragma weak free
@@ -18,8 +19,13 @@ FILE *__file_list;
 void __io_init(void)
 {
     stdin->_flags = _IO_MAGIC | _IO_READABLE | _IO_CONSOLE;
+    __con_setup_dispatch(stdin);
+
     stdout->_flags = _IO_MAGIC | _IO_WRITABLE | _IO_CONSOLE;
+    __con_setup_dispatch(stdout);
+
     stderr->_flags = _IO_MAGIC | _IO_WRITABLE | _IO_CONSOLE;
+    __con_setup_dispatch(stderr);
 }
 
 

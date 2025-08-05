@@ -255,7 +255,8 @@ OBJS = 	\
 		\
 		io/io-constants.o \
 		io/io-console.o \
-		io/io-file-init.o \
+		io/io-consoleio.o \
+		io/io-init.o \
 		io/io-file-misc.o \
 		io/io-file-fopen.o \
 		io/io-file-fopen-lesser.o \
@@ -276,6 +277,7 @@ OBJS = 	\
 		fs/fs-rename.o \
 		fs/fs-tmpfile.o \
 		fs/fs-tmpnam.o \
+		fs/fs-io.o \
 		\
 		kernel/kernel-backtrace.o \
 		kernel/kernel-escape.o \
