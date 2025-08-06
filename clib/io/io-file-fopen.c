@@ -11,6 +11,7 @@
 #include "io/io-file-fopen.h"
 #include <errno.h>
 
+#define USE_MAGIC_CON_FILENAME
 
 
 /*************************************************** Gerph *********
@@ -38,6 +39,25 @@ bool _fopen(const char *filename, const char *mode, FILE *fh)
             reason |= 0xC0;
     }
 
+#ifdef USE_MAGIC_CON_FILENAME
+    if (filename[0] == ':' &&
+        filename[1] == 't' &&
+        filename[2] == 't' &&
+        filename[3] == '\0')
+    {
+        /* This is an attempt to open the console; so switch to the
+         * console opening calls.
+         */
+        fh->_flags = _IO_MAGIC | _IO_CONSOLE;
+        if (reason & 0x80)
+            reason = reason & ~0x40; /* If it's writable, it cannot be readable */
+
+        __con_setup_dispatch(fh);
+
+        goto set_flags;
+    }
+#endif
+
     reason |= (1<<2) | (1<<3); /* Error if not a file */
 
     _kernel_oserror *err;
@@ -50,15 +70,15 @@ bool _fopen(const char *filename, const char *mode, FILE *fh)
     }
 
     fh->_fileno = _fileno;
-
     fh->_flags = _IO_MAGIC; /* Mark as valid */
 
+    __fs_setup_dispatch(fh);
+
+set_flags:
     if (reason & 0x80)
         fh->_flags |= _IO_WRITABLE;
     if (reason & 0x40)
         fh->_flags |= _IO_READABLE;
-
-    __fs_setup_dispatch(fh);
 
     return true;
 }
