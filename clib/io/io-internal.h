@@ -12,6 +12,8 @@
 #include <limits.h>
 #include <stdio.h>
 
+extern FILE *__file_list;
+
 /* For fields, see:
      /usr/xcc/aarch64-unknown-linux-gnu/aarch64-unknown-linux-gnu/sysroot/usr/include/bits/types/struct_FILE.h
 
@@ -33,6 +35,14 @@
 
 #define _IO_MAGIC (0x381F0000u)
 #define _IO_MAGIC_MASK (0xFFFF0000u)
+#define CHECK_MAGIC0(fh) \
+                        do { \
+                            if ( (fh) == NULL || (((fh)->_flags & _IO_MAGIC_MASK) != _IO_MAGIC) ) \
+                            { \
+                                errno = EBADF; \
+                                return; \
+                            } \
+                        } while (0)
 #define CHECK_MAGIC(fh, fail_code) \
                         do { \
                             if ( (fh) == NULL || (((fh)->_flags & _IO_MAGIC_MASK) != _IO_MAGIC) ) \

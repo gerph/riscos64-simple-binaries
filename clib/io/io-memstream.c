@@ -5,7 +5,10 @@
  * Date:        5 Aug 2025
  ******************************************************************/
 
+#include <stdbool.h>
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "io/io-internal.h"
 #include "fs/fs-errors.h"
@@ -29,7 +32,7 @@ static _io_dispatch_t __mem_dispatch;
 
 #define MEM_POS(fh)     (MEM_PTR(fh) - MEM_BASE(fh))
 #define MEM_EXTENT(fh)  (MEM_ENDPTR(fh) - MEM_BASE(fh))
-#define MEM_FREE(fh)    (MEM_ENDPTR(fh) - MEM_PTR(fh) - 1) /* -1 because of the \0 we must store */
+#define MEM_FREE(fh)    ((MEM_END(fh) - MEM_PTR(fh)) - 1) /* -1 because of the \0 we must store */
 #define MEM_BUFSIZE(fh) (MEM_ENDPTR(fh) - MEM_BASE(fh))
 
 #define INITIAL_SIZE    (256)
@@ -37,7 +40,7 @@ static _io_dispatch_t __mem_dispatch;
 
 #define UPDATE_POINTERS(fh) \
     do { \
-        *(char**)((fh)->_IO_read_base) = _IO_write_base; \
+        *(char**)((fh)->_IO_read_base) = MEM_BASE(fh); \
         *(size_t*)((fh)->_IO_read_end) = MEM_EXTENT(fh); \
         *(MEM_PTR(fh)) = '\0'; \
     } while (0)
@@ -55,7 +58,7 @@ bool __mem_ensure(FILE *fh, size_t need)
     size_t freespace = MEM_FREE(fh);
     char *newbuf;
 
-    if (freespace < need)
+    if (freespace > need)
         return true;
 
     /* We don't have enough room in the buffer, so we need to reallocate */
@@ -76,10 +79,10 @@ bool __mem_ensure(FILE *fh, size_t need)
         MEM_PTR(fh) = newbuf + pos;
         MEM_ENDPTR(fh) = newbuf + extent;
         MEM_END(fh) = newbuf + new_size;
-    }
 
-    /* We need to clear the extra space */
-    memset(newbuf + extent, 0, new_size - extent);
+        /* We need to clear the extra space */
+        memset(newbuf + extent, 0, new_size - extent);
+    }
 
     /* Ensure that the user's view of the data has been updated */
     UPDATE_POINTERS(fh);
@@ -91,6 +94,7 @@ bool __mem_ensure(FILE *fh, size_t need)
 
 static int __mem_close(FILE *fh)
 {
+    //printf("Closing fh %p\n", fh);
     UPDATE_POINTERS(fh);
     /* No memory to free; the user takes ownership */
     return 0;
@@ -123,9 +127,25 @@ static int __mem_read_byte(FILE *fh)
 
 static int __mem_write_multiple(FILE *fh, const void *ptr, size_t transfer)
 {
-    /* FIXME: Write some data */
     __mem_ensure(fh, transfer);
-    return 0;
+
+    char *memory = MEM_PTR(fh);
+    long int space = MEM_FREE(fh);
+    if (space < transfer)
+        transfer = space;
+    //printf("_mem_write: Trying to write %zu, space %zu\n", transfer, space);
+    if (space > 0)
+    {
+        memcpy(memory, ptr, transfer);
+        MEM_PTR(fh) += transfer;
+        if (MEM_PTR(fh) > MEM_ENDPTR(fh))
+            MEM_ENDPTR(fh) = MEM_PTR(fh);
+    }
+    else
+    {
+        transfer = 0;
+    }
+    return transfer;
 }
 
 static int __mem_write_byte(FILE *fh, int c)
@@ -136,16 +156,33 @@ static int __mem_write_byte(FILE *fh, int c)
 
 static long int __mem_write_pos(FILE *fh, long int pos, int whence)
 {
-    /* FIXME: Update the current position in the memstream */
+    switch (whence)
+    {
+        case SEEK_SET:
+            if (pos < 0)
+                pos = 0;
+            MEM_PTR(fh) = MEM_BASE(fh) + pos;
+            break;
 
-    return pos;
+        case SEEK_CUR:
+            if (pos < 0 && MEM_POS(fh) < -pos)
+                pos = -MEM_POS(fh);
+            MEM_PTR(fh) = MEM_PTR(fh) + pos;
+            break;
+
+        case SEEK_END:
+            if (pos < 0 && MEM_POS(fh) < -pos)
+                pos = -MEM_POS(fh);
+            MEM_PTR(fh) = MEM_PTR(fh) + pos;
+            break;
+    }
+    return MEM_POS(fh);
 }
 
 
 static long int __mem_read_pos(FILE *fh)
 {
-    /* FIXME: Read the current position in the memstream */
-    return cur;
+    return MEM_POS(fh);
 }
 
 
@@ -207,6 +244,9 @@ FILE *open_memstream(char **bufp, size_t *sizep)
     /* Where we'll update the pointers */
     fh->_IO_read_base = (char *)bufp;
     fh->_IO_read_end = (char *)sizep;
+
+    fh->_flags = _IO_MAGIC; /* Mark as valid */
+    fh->_flags |= _IO_WRITABLE;
 
     __mem_setup_dispatch(fh);
 

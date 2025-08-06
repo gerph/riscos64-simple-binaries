@@ -271,6 +271,7 @@ OBJS = 	\
 		io/io-vprintf.o \
 		io/sscanf.o \
 		io/stackcheck.o \
+		io/io-memstream.o \
 		\
 		fs/fs-errors.o \
 		fs/fs-remove.o \

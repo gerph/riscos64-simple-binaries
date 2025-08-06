@@ -11,7 +11,6 @@
 #include "io/io-file-fopen.h"
 #include <errno.h>
 
-extern FILE *__file_list;
 
 
 /*************************************************** Gerph *********
@@ -73,10 +72,7 @@ bool _fopen(const char *filename, const char *mode, FILE *fh)
  ******************************************************************/
 void _fclose(FILE *fh)
 {
-    if (fh->_fileno)
-    {
-        IO_DISPATCH(fh)->close(fh);
-    }
+    IO_DISPATCH(fh)->close(fh);
     if (fh == stdin)
     {
         /* Reset the FILE for stdin */
@@ -125,27 +121,23 @@ FILE *fopen(const char *filename, const char *mode)
 
 int fclose(FILE *fh)
 {
-    if (fh)
-    {
-        CHECK_MAGIC(fh, -1);
-        _fclose(fh);
+    CHECK_MAGIC(fh, -1);
 
-        /* Unlink from chain */
-        FILE **lastp = &__file_list;
-        FILE *cur;
-        for (cur=__file_list; cur; cur=cur->_chain)
+    _fclose(fh);
+
+    /* Unlink from chain */
+    FILE **lastp = &__file_list;
+    FILE *cur;
+    for (cur=__file_list; cur; cur=cur->_chain)
+    {
+        if (cur == fh)
         {
-            if (cur == fh)
-            {
-                /* This is the entry to unlink */
-                *lastp = cur->_chain;
-                free(fh);
-                break;
-            }
-            lastp = &cur->_chain;
+            /* This is the entry to unlink */
+            *lastp = cur->_chain;
+            free(fh);
+            break;
         }
-        return 0;
+        lastp = &cur->_chain;
     }
-    errno = EBADF;
-    return -1;
+    return 0;
 }
