@@ -8,9 +8,9 @@
 // => x0-> unwind block
 // <= x0-> unwind block, updated with current state
 //          +0 = fp (eg for _kernel_unwind)
-//          +4 = sp (at the time of the call)
-//          +12 = lr (where we were called from, eg what called _kernel_unwind)
-//          +16 = pc (where we were when we were called, eg in _kernel_unwind)
+//          +8 = sp (at the time of the call)
+//          +16 = lr (where we were called from, eg what called _kernel_unwind)
+//          +24 = pc (where we were when we were called, eg in _kernel_unwind)
     FUNC    "_kernel_unwind_current"
     STR     x29, [x0, #0]
     MOV     x1, sp
