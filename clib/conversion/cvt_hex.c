@@ -21,8 +21,18 @@ int __cvt_uint64_hex(uint64_t value, char *buffer, int width, int spaced)
 {
     char *p = buffer;
     int started = (spaced == -1);
-    int shift;
-    for (shift = (width * 4) - 4; shift >= 0; shift -= 4)
+    int shift = (width * 4) - 4;
+    if (spaced == 0)
+    {
+        /* Small optimisation to not iterate through the higher bits if not needed */
+        if (width >= 8 && (value >> 8) == 0)
+            shift = 8 - 4;
+        else if (width >= 16 && (value >> 16) == 0)
+            shift = 16 - 4;
+        else if (width >= 32 && (value >> 32) == 0)
+            shift = 32 - 4;
+    }
+    for (; shift >= 0; shift -= 4)
     {
         int v = (value >> shift) & 15;
         if (started || v > 0)
