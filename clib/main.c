@@ -11,6 +11,12 @@
 /* Define this to put the arguments on the stack, rather then in the heap */
 #define BUILD_ARGV_ON_STACK
 
+/* Define this to support the redirection on the command line */
+#define CLI_REDIRECTION
+
+/* Include debugging for the redirection operations */
+//#define DEBUG_REDIRECTION
+
 /* The minimum heap we want to have */
 #define MINIMUM_HEAP (4*1024)
 
@@ -33,6 +39,146 @@ static void __main_fail(const char *msg)
     os_newline();
     exit(1);
 }
+
+
+#ifdef CLI_REDIRECTION
+#include <stdio.h>
+/*************************************************** Gerph *********
+ Function:      __cli_redirection
+ Description:   Manipulate the arguments to redirect input and output
+ Parameters:    argc = number of arguments
+                argv-> the arguments decoded
+ Returns:       none
+ ******************************************************************/
+void __cli_redirection(int argc, char **argv)
+{
+    int i;
+    for (i=0; i < argc; i++)
+    {
+        int oldi = i;
+        char *arg = argv[i];
+        int fd = -1;
+        char *filename;
+        bool append = false;
+        if (arg[0] == '<')
+        {
+            /* This *MIGHT* be an environment variable */
+            int o;
+            for (o=1; arg[o] != '\0'; o++)
+            {
+                if (arg[o] == '<' || arg[o] == ' ')
+                {
+                    /* This is something like "<<" or "< <", so it's not really a redirection -
+                     * redirecting to sysvars should use the next arg.
+                     */
+                    goto not_redirection;
+                }
+                if (arg[o] == '>')
+                {
+                    /* This is something like "<65>" or "<var$name>", so not really a redirection */
+                    goto not_redirection;
+                }
+            }
+            fd = 0;
+            arg++;
+        }
+        else
+        {
+            if ((arg[0] == '2' || arg[0] == '1') && arg[1] == '>')
+            {
+                fd = (*arg++) - '0';
+                arg++;
+            }
+            else if (arg[0] == '>')
+            {
+                fd = 1;
+                arg++;
+            }
+            else
+            {
+                goto not_redirection;
+            }
+            if (*arg == '&')
+            {
+                /* FIXME: This is a dup'd handle; not supported yet */
+                __main_fail("Redirection to other handles not supported");
+            }
+
+            if (*arg == '>')
+            {
+                append = true;
+                arg++;
+            }
+        }
+
+        if (*arg == ' ')
+        {
+            /* Definitely not a redirection if it's in a single arg */
+            goto not_redirection;
+        }
+        if (*arg == '\0')
+        {
+            /* Format: "> filename" */
+            i++;
+            if (i == argc)
+                goto bad_redirection;
+            filename = argv[i];
+        }
+        else
+        {
+            filename = arg;
+        }
+
+        if (fd == 0)
+        {
+            FILE *fh;
+#ifdef DEBUG_REDIRECTION
+            os_write0("Redirect input: filename = "); os_write0(filename); os_newline();
+#endif
+            fh = freopen(filename, "r", stdin);
+            if (fh == NULL)
+            {
+                __main_fail("Input redirection failed");
+            }
+            stdin = fh;
+        }
+        else if (fd == 1 || fd == 2)
+        {
+            FILE **fhp = (fd == 1) ? &stdout : &stderr;
+            FILE *fh;
+#ifdef DEBUG_REDIRECTION
+            os_write0("Redirect output: filename = "); os_write0(filename); os_newline();
+#endif
+            fh = freopen(filename, append ? "a" : "w", *fhp);
+            if (fh == NULL)
+            {
+                __main_fail("Output redirection failed");
+            }
+            *fhp = fh;
+        }
+
+        // Now we need to remove the arguments from the argv array.
+        int o;
+        int nexti = oldi - 1;
+        argc -= (i - oldi) + 1;
+        for (o = i + 1; oldi < argc; o++, oldi++)
+        {
+            argv[oldi] = argv[o];
+        }
+        i = nexti;
+not_redirection:
+    }
+#ifdef DEBUG_REDIRECTION
+    os_write0("Post-redirection args:"); os_newline();
+    for (i=0; i<argc; i++)
+        os_write0("  "), os_write0(argv[i]), os_newline();
+#endif
+    return;
+
+bad_redirection:
+    __main_fail("Bad redirection");
+}
+#endif
 
 int __main(const char *cli,
            const void *appspace,
@@ -216,6 +362,10 @@ int __main(const char *cli,
     }
 
     argv[argc] = NULL;
+
+#ifdef CLI_REDIRECTION
+    __cli_redirection(argc, argv);
+#endif
 
     /*** Call main ***/
     rc = main(argc, (const char **)argv);
