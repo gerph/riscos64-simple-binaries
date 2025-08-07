@@ -37,7 +37,12 @@ int __cvt_uint64_hex(uint64_t value, char *buffer, int width, int spaced)
         }
     }
     if (value == 0 && !started)
-        *p++ = '0';
+    {
+        if (spaced)
+            p[-1] = '0';
+        else
+            *p++ = '0';
+    }
 
     *p++ = '\0';
 
