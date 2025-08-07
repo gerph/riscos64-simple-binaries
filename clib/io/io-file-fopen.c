@@ -24,18 +24,24 @@
  ******************************************************************/
 bool _fopen(const char *filename, const char *mode, FILE *fh)
 {
+    bool append = false;
     int reason = 0x00;
     for (char c = *mode++; c; c = *mode++)
     {
         if (c == 'r')
             reason |= 0x40;
-        if (c == 'w')
+        else if (c == 'w')
         {
             if (reason == 0x40)
                 reason = 0;
             reason |= 0x80;
         }
-        if (c == '+')
+        else if (c=='a')
+        {
+            append = true;
+            reason |= 0xC0;
+        }
+        else if (c == '+')
             reason |= 0xC0;
     }
 
@@ -69,6 +75,23 @@ bool _fopen(const char *filename, const char *mode, FILE *fh)
         return false;
     }
 
+    if (append)
+    {
+        size_t ext = 0;
+        err = _swix(OS_Args, _INR(0, 1)|_OUT(2), 2, _fileno, &ext);
+        if (err)
+        {
+            /* We cannot seek to the end, so we just write to the start */
+            append = false;
+        }
+        else
+        {
+            err = _swix(OS_Args, _INR(0, 2), 1, _fileno, ext);
+            if (err)
+                append = false;
+        }
+    }
+
     fh->_fileno = _fileno;
     fh->_flags = _IO_MAGIC; /* Mark as valid */
 
@@ -79,6 +102,8 @@ set_flags:
         fh->_flags |= _IO_WRITABLE;
     if (reason & 0x40)
         fh->_flags |= _IO_READABLE;
+    if (append)
+        fh->_flags |= _IO_APPEND;
 
     return true;
 }

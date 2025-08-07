@@ -20,6 +20,12 @@ int fseek(FILE *fh, long int pos, int whence)
         return -1;
     }
 
+    if (IO_IS_APPEND(fh))
+    {
+        errno = EINVAL; /* You tried to seen on an append file handle... you can't do that */
+        return -1;
+    }
+
     result = IO_DISPATCH(fh)->write_pos(fh, pos, whence);
     if (result < 0)
     {
