@@ -9,6 +9,9 @@
 #include "swis_os.h"
 #include "conversion/cvt.h"
 
+/* Define this to include the stack pointer and the frame pointer in dumps */
+//#define INCLUDE_SP
+
 /*************************************************** Gerph *********
  Function:      _kernel_backtrace
  Description:   Report the backtrace to VDU
@@ -28,6 +31,18 @@ void _kernel_backtrace(void)
     while (state >= 0)
     {
         char buffer[20];
+
+#ifdef INCLUDE_SP
+        /* Write the address */
+        __cvt_uint64_hex(uwp.sp, buffer, 16, 1);
+        os_write0(buffer);
+        os_write0(" : ");
+
+        /* Write the address */
+        __cvt_uint64_hex(uwp.fp, buffer, 16, 1);
+        os_write0(buffer);
+        os_write0(" : ");
+#endif
 
         /* Write the address */
         __cvt_uint64_hex(uwp.pc, buffer, 16, 1);
