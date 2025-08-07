@@ -10,7 +10,7 @@
 - clib: The error handler now reports a backtrace when it is called.
 
 ### Fixed
-- 
+- stdio: Fix for `freopen` on stdin, stdout, or stderr causing a backtrace.
 
 ### Removed
 - 
