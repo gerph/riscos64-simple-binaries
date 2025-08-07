@@ -10,6 +10,7 @@
 
 ### Changed
 - clib: The error handler now reports a backtrace when it is called.
+- time: Reading lines or characters from `stdin` now freezes the `clock()`.
 
 ### Fixed
 - stdio: Fix for `freopen` on stdin, stdout, or stderr causing a backtrace.

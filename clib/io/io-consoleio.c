@@ -7,6 +7,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "kernel.h"
 #include "riscos/NewErrors.h"
@@ -15,6 +16,7 @@
 #include "swis_os.h"
 
 #include "io/io-internal.h"
+#include "time/time-clock.h"
 
 static _io_dispatch_t __con_dispatch;
 
@@ -104,7 +106,10 @@ static int __con_read_byte(FILE *fh)
 {
     /* Will never be called for output */
     /* FIXME: Should return failure if we had EOF? */
-    return os_readc();
+    __clock_freeze(true);
+    int b = os_readc();
+    __clock_freeze(false);
+    return b;
 }
 
 static int __con_write_multiple(FILE *fh, const void *ptr, size_t transfer)
@@ -167,7 +172,9 @@ static int __con_read_line(FILE *fh, char *str, size_t size)
 {
     _kernel_oserror *err;
     int len;
+    __clock_freeze(true);
     err = os_readline(str, size - 1);
+    __clock_freeze(false);
     if (err)
     {
         return -EINTR;
