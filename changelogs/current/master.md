@@ -9,7 +9,7 @@
 - linking: Overlong function names are now truncated in signatures, rather than having their name omitted entirely.
 
 ### Fixed
-- 
+- stdio: Fix for fgets failing to include the trailing newline in the read line.
 
 ### Removed
 - 

@@ -158,14 +158,13 @@ static long int __fs_read_pos(FILE *fh)
 static int __fs_read_line(FILE *fh, char *str, size_t size)
 {
     char *p;
-    for (p = str; p - str < size - 1; p++)
+    for (p = str; p - str < size - 1;)
     {
         int c = __fs_read_byte(fh);
         if (c < 0)
             return c;
-        if (c != '\n')
-            *p = c;
-        else
+        *p++ = c;
+        if (c = '\n')
             break;
     }
     *p = '\0';
