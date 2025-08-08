@@ -10,7 +10,7 @@
 #include <stdbool.h>
 
 #include "kernel.h"
-#include "riscos/NewErrors.h"
+#include "kernel/kernel-errors.h"
 
 #include "swis.h"
 #include "swis_os.h"
