@@ -9,7 +9,10 @@
 FILE *freopen(const char *filename, const char *mode, FILE *oldfh)
 {
     if (!oldfh)
+    {
+        errno = EBADF;
         return NULL;
+    }
     if (filename == NULL)
     {
         /* Request to change the mode - not supported and is ignored */
@@ -24,7 +27,10 @@ FILE *freopen(const char *filename, const char *mode, FILE *oldfh)
     /* Now we perform the open with this handle */
     if (!_fopen(filename, mode, oldfh))
     {
-        free(oldfh);
+        if (oldfh != stdout &&
+            oldfh != stderr &&
+            oldfh != stdin)
+            free(oldfh);
         return NULL;
     }
 

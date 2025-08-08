@@ -37,6 +37,10 @@ all:
 shell: dockcross-linux-arm64
 	./dockcross-linux-arm64 bash
 
+change:
+	cd .. ; make change
+
+
 dockcross-linux-arm64:
 	docker run --rm dockcross/linux-arm64:latest > dockcross-linux-arm64
 	chmod +x dockcross-linux-arm64
@@ -49,7 +53,7 @@ ifeq (${CROSS_ROOT},)
 
 CLIBDIR = $(shell realpath ../clib/export)
 
-ifneq ($(filter-out all shell dockcross-linux-arm64 clean,${MAKECMDGOALS}),)
+ifneq ($(filter-out all shell dockcross-linux-arm64 clean change,${MAKECMDGOALS}),)
 # The command wasn't one of our invocation commands above
 .PHONY: ${MAKECMDGOALS}
 ${MAKECMDGOALS}: dockcross-linux-arm64 ${CRT_OBJS}

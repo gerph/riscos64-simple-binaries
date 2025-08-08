@@ -61,6 +61,7 @@ int fprintf(FILE *f, const char *format, ...)
 
     if (!IO_IS_WRITABLE(f))
     {
+        errno = EPERM;
         return 0;
     }
 

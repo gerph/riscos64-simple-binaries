@@ -10,53 +10,26 @@
 
 int fseek(FILE *fh, long int pos, int whence)
 {
-    _kernel_oserror *err;
-    size_t size = 0;
-    if (!fh)
-    {
-        errno = EBADF;
-        return -1;
-    }
+    int result;
 
     CHECK_MAGIC(fh, -1);
 
     if (IO_IS_CONSOLE(fh))
     {
-        /* FIXME: Should set errno? */
+        errno = EPERM;
         return -1;
     }
 
-    switch (whence)
+    if (IO_IS_APPEND(fh))
     {
-        case SEEK_SET:
-            break;
-
-        case SEEK_CUR:
-            size_t cur = 0;
-            err = _swix(OS_Args, _INR(0, 1)|_OUT(2), 0, fh->_fileno, &cur);
-            if (err)
-            {
-                __fs_seterrno(err);
-                return -1;
-            }
-            pos += cur;
-            break;
-
-        case SEEK_END:
-            size_t ext = 0;
-            err = _swix(OS_Args, _INR(0, 1)|_OUT(2), 2, fh->_fileno, &ext);
-            if (err)
-            {
-                __fs_seterrno(err);
-                return -1;
-            }
-            pos += ext;
-            break;
+        errno = EINVAL; /* You tried to seen on an append file handle... you can't do that */
+        return -1;
     }
-    err = _swix(OS_Args, _INR(0, 2), 1, fh->_fileno, pos);
-    if (err)
+
+    result = IO_DISPATCH(fh)->write_pos(fh, pos, whence);
+    if (result < 0)
     {
-        __fs_seterrno(err);
+        errno = -result;
         return -1;
     }
     else
@@ -70,28 +43,22 @@ int fseek(FILE *fh, long int pos, int whence)
 
 long int ftell(FILE *fh)
 {
-    _kernel_oserror *err;
-    if (!fh)
-    {
-        errno = EBADF;
-        return -1;
-    }
+    long int pos;
 
     CHECK_MAGIC(fh, -1);
 
     if (IO_IS_CONSOLE(fh))
     {
-        /* FIXME: Should set errno? */
+        errno = EPERM;
         return -1;
     }
 
-    size_t cur = 0;
-    err = _swix(OS_Args, _INR(0, 1)|_OUT(2), 0, fh->_fileno, &cur);
-    if (err)
+    pos = IO_DISPATCH(fh)->read_pos(fh);
+    if (pos < 0)
     {
-        __fs_seterrno(err);
+        errno = -pos;
         return -1;
     }
 
-    return cur;
+    return pos;
 }

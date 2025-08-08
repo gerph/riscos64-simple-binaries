@@ -43,8 +43,10 @@ int __cvt_uint64_decimal(uint64_t value, char *buffer)
         };
     int tensindex = 19;
 
-    if (value < 10000000000)
-        tensindex = 11;
+    if (value < 100000)
+        tensindex = 6;
+    else if (value < 10000000000)
+        tensindex = 10;
 
     int first = 1;
     while (tensindex >= 0)

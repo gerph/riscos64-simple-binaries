@@ -10,31 +10,27 @@
 
 size_t fread(void *ptr, size_t size, size_t nitems, FILE *fh)
 {
-    _kernel_oserror *err;
-    if (!fh)
-        return 0;
-
-    CHECK_MAGIC(fh, -1);
+    CHECK_MAGIC(fh, 0);
 
     if (!IO_IS_READABLE(fh))
     {
+        errno = EPERM;
         return 0;
     }
 
-    if (IO_IS_KEYBOARD(fh))
+    /* Shortcut reading a single byte if we can */
+    if (size == 1 && nitems == 1)
     {
-        if (size == 1 && nitems == 1)
-        {
-            char *p = (char*)ptr;
-            *p = fgetc(fh);
-            return 1;
-        }
-
-        return -1;
+        char *p = (char*)ptr;
+        int c = fgetc(fh);
+        if (c == EOF)
+            return 0;
+        *p = c;
+        return 1;
     }
 
     size_t transfer = size * nitems;
-    size_t not_transferred = 0;
+    int transferred = 0;
     size_t totransfer = transfer;
 
     if (transfer == 0)
@@ -52,23 +48,22 @@ size_t fread(void *ptr, size_t size, size_t nitems, FILE *fh)
 
     if (totransfer != 0)
     {
-        err = _swix(OS_GBPB, _INR(0, 3)|_OUT(3), 4, fh->_fileno, ptr, totransfer, &not_transferred);
-        if (err)
+        transferred = IO_DISPATCH(fh)->read_multiple(fh, ptr, totransfer);
+        if (transferred < 0)
         {
-            /* FIXME: Set errno? */
+            errno = -transferred;
             return 0;
         }
     }
 
-    if (not_transferred == 0)
+    if (transferred == totransfer)
         return nitems;
 
     if (size == 1)
-        return transfer - not_transferred;
+        return transferred;
 
     /* They requested a size that wasn't the whole, so we need to move back */
     {
-        size_t transferred = (transfer - not_transferred);
         nitems = transferred / nitems;
         size_t excess = transferred % nitems;
         if (excess)
@@ -84,22 +79,14 @@ size_t fread(void *ptr, size_t size, size_t nitems, FILE *fh)
 int fgetc(FILE *fh)
 {
     int32_t c;
-    _kernel_oserror *err;
-    if (!fh)
-    {
-        errno = EBADF;
-        return -1;
-    }
 
-    CHECK_MAGIC(fh, -1);
+    CHECK_MAGIC(fh, EOF);
 
     if (!IO_IS_READABLE(fh))
     {
-        return 0;
+        errno = EPERM;
+        return EOF;
     }
-
-    if (IO_IS_KEYBOARD(fh))
-        return os_readc();
 
     if (fh->_flags & _IO_CHARPUSHED)
     {
@@ -109,14 +96,12 @@ int fgetc(FILE *fh)
         return c;
     }
 
-    err = _swix(OS_BGet, _IN(1)|_OUT(0), fh->_fileno, &c);
-    /* FIXME: Doesn't check for EOF */
-    if (err)
+    c = IO_DISPATCH(fh)->read_byte(fh);
+    if (c < 0)
     {
-        __fs_seterrno(err);
-        return -1;
+        errno = -c;
+        c = EOF;
     }
-
     return c;
 }
 
@@ -128,17 +113,12 @@ int getc(FILE *fh)
 
 int ungetc(int c, FILE *fh)
 {
-    if (!fh)
-    {
-        errno = EBADF;
-        return -1;
-    }
-
     CHECK_MAGIC(fh, -1);
 
     if (!IO_IS_READABLE(fh))
     {
-        return 0;
+        errno = EPERM;
+        return EOF;
     }
 
     if (fh->_flags & _IO_CHARPUSHED)

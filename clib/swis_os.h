@@ -1,7 +1,12 @@
 #ifndef SWIS_OS_H
 #define SWIS_OS_H
 
+#include <stdint.h>
 #include "kernel.h"
+
+/* Define this to control whether we use inline SWIs or functions */
+//#define __INLINE_SWIS_OS
+
 
 #define os_writec __os_writec
 #define os_readc __os_readc
@@ -17,6 +22,7 @@
 #define os_newline __os_newline
 #define os_generateerror __os_generateerror
 #define os_readescapestate __os_readescapestate
+#define os_readmonotonictime __os_readmonotonictime
 #define os_module __os_module
 #define os_heap __os_heap
 #define os_byte_out1 __os_byte_out1
@@ -36,10 +42,8 @@ void draw_fill(int32_t *path, uint32_t style, int32_t *matrix, int32_t flatness)
 void os_setcolour(uint32_t flags, uint32_t gcol);
 _kernel_oserror *os_word(int32_t op, char reason, char *data);
 int os_inkey(int32_t value);
-_kernel_oserror *os_write0(const char *str);
 _kernel_oserror *os_write0end(const char *str, const char **endp); /* Returns the end pointer as well */
 _kernel_oserror *os_writen(const char *str, int n);
-_kernel_oserror *os_newline(void);
 void os_generateerror(_kernel_oserror *err) __attribute__ ((__noreturn__));
 int os_readescapestate(void);
 _kernel_oserror *os_file2(int op, const char *filename);
@@ -59,5 +63,59 @@ int os_byte_out1(int r0, int r1, int r2);
 
 _kernel_oserror *os_changeenvironment(int envnumber, intptr_t handler, intptr_t workspace, intptr_t buffer,
                                       intptr_t *old_handler);
+
+/* Inline definitions - probably not worthwhile, but we have the option */
+#if defined(__riscos64) && defined(__GNUC__) && defined(__INLINE_SWIS_OS)
+static inline uint64_t os_readmonotonictime(void)
+{
+  register uint64_t ret asm("r0");
+  __asm __volatile (
+            "mov\tx10, 0x42\n"
+            "orr\tx10, x10, 0x20000\n"
+            "svc\t0x00000000\n"
+            "csel\tx0, x0, xzr, VC\n"
+            :   "=r" (ret)
+            :
+            :   "x10"
+            );
+    return ret;
+}
+
+static inline _kernel_oserror *os_write0(const char *str)
+{
+  register const char *astr asm("r0") = str;
+  register _kernel_oserror *err asm("r0");
+  __asm __volatile ("\n"
+        "MOV     x10, #0x2                   // OS_Write0\n"
+        "ORR     x10, x10, #0x20000\n"
+        "SVC     #0\n"
+        "CSEL    x0, x0, xzr, VS\n"
+        :       "+r" (err)
+        :       "r" (astr)
+        :       "x10"
+    );
+  return err;
+}
+
+static inline _kernel_oserror *os_newline(void)
+{
+  register _kernel_oserror *err asm("r0");
+  __asm __volatile ("\n"
+        "MOV     x10, #0x3                   // OS_NewLine\n"
+        "ORR     x10, x10, #0x20000\n"
+        "SVC     #0\n"
+        "CSEL    x0, x0, xzr, VS\n"
+        :       "+r" (err)
+        :
+        :       "x10"
+    );
+  return err;
+}
+
+#else
+uint64_t os_readmonotonictime(void);
+_kernel_oserror *os_write0(const char *str);
+_kernel_oserror *os_newline(void);
+#endif
 
 #endif

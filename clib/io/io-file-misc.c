@@ -10,31 +10,17 @@
 
 int feof(FILE *fh)
 {
-    int32_t at_eof;
-    _kernel_oserror *err;
-    if (!fh)
-    {
-        errno = EBADF;
-        return -1;
-    }
+    int result;
 
     CHECK_MAGIC(fh, -1);
 
-    if (IO_IS_SCREEN(fh))
-        return 0;
-    if (IO_IS_KEYBOARD(fh))
+    result = IO_DISPATCH(fh)->check_eof(fh);
+    if (result < 0)
     {
-        /* FIXME: Should detect EOF? */
-        return 0;
+        errno = -result; /* FIXME: Apparently these functions should not fail or set errno? */
+        return 1;
     }
-
-    err = _swix(OS_Args, _INR(0, 1)|_OUT(2), 5, fh->_fileno, &at_eof);
-    if (err)
-    {
-        __fs_seterrno(err);
-        return 1; /* Error, so return EOF */
-    }
-    return at_eof ? 1 : 0;
+    return result;
 }
 
 int ferror(FILE *fh)
@@ -46,18 +32,12 @@ int ferror(FILE *fh)
 
 int fileno(FILE *fh)
 {
-    if (!fh)
-    {
-        errno = EBADF;
-        return -1;
-    }
-
     CHECK_MAGIC(fh, -1);
 
     if (IO_IS_CONSOLE(fh))
     {
         errno = EBADF;
-        return -2;
+        return IO_FD_CONSOLE;
     }
 
     return fh->_fileno;
@@ -84,7 +64,7 @@ void clearerr(FILE *fh)
 
 int isatty(int fd)
 {
-    if (fd == -2)
+    if (fd == IO_FD_CONSOLE)
         return 1;
     return 0;
 }

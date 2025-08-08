@@ -10,49 +10,22 @@
 
 size_t fwrite(const void *ptr, size_t size, size_t nitems, FILE *fh)
 {
-    _kernel_oserror *err;
-    if (!fh)
+    CHECK_MAGIC(fh, 0);
+
+    if (!IO_IS_WRITABLE(fh))
     {
-        errno = EBADF;
-        return -1;
+        errno = EPERM;
+        return 0;
     }
     if (size == 0 || nitems == 0)
         return 0;
 
-    CHECK_MAGIC(fh, -1);
-
-    if (!IO_IS_WRITABLE(fh))
+    size_t totransfer = size * nitems;
+    int transferred = IO_DISPATCH(fh)->write_multiple(fh, ptr, totransfer);
+    if (transferred < 0)
     {
+        errno = -transferred;
         return 0;
-    }
-
-    if (IO_IS_SCREEN(fh))
-    {
-        size_t total = size * nitems;
-        while (total)
-        {
-            const char *next_nl = memchr(ptr, '\n', total);
-            if (next_nl == NULL)
-            {
-                os_writen(ptr, total);
-                break;
-            }
-            int to_nl = (next_nl - (const char *)ptr);
-            os_writen(ptr, to_nl);
-            os_newline();
-            total -= to_nl + 1;
-            ptr = ((const char *)ptr) + to_nl + 1;
-        }
-        return size * nitems;
-    }
-
-    size_t transfer = size * nitems;
-    size_t not_transferred = 0;
-    err = _swix(OS_GBPB, _INR(0, 3)|_OUT(3), 2, fh->_fileno, ptr, transfer, &not_transferred);
-    if (err)
-    {
-        __fs_seterrno(err);
-        return -1;
     }
     else
     {
@@ -60,69 +33,71 @@ size_t fwrite(const void *ptr, size_t size, size_t nitems, FILE *fh)
         fh->_flags &= ~ _IO_CHARPUSHED;
     }
 
-    return transfer - not_transferred;
+    if (transferred == totransfer)
+        return nitems;
+
+    if (size == 1)
+        return transferred;
+
+    /* They tried to write things, but didn't write a whole record... we may have corrupted data, but let's report */
+    {
+        nitems = transferred / nitems;
+        size_t excess = transferred % nitems;
+        if (excess)
+        {
+            /* Move back the amount we wrote which wasn't a whole item */
+            fseek(fh, -excess, SEEK_CUR);
+        }
+
+        return nitems;
+    }
 }
 
 int fflush(FILE *fh)
 {
-    if (!fh)
-    {
-        errno = EBADF;
-        return -1;
-    }
-
     CHECK_MAGIC(fh, -1);
 
     if (!IO_IS_WRITABLE(fh))
     {
+        errno = EPERM;
         return 0;
     }
 
     if (IO_IS_CONSOLE(fh))
         return 0;
 
-    /* FIXME: Could call the flush OS_Args call */
+    int result = IO_DISPATCH(fh)->flush(fh);
+    if (result < 0)
+    {
+        errno = -result;
+        return -1;
+    }
+
     return 0;
 }
 
 
 int fputc(int c, FILE *fh)
 {
-    _kernel_oserror *err;
-    if (!fh)
-    {
-        errno = EBADF;
-        return -1;
-    }
-
     CHECK_MAGIC(fh, -1);
 
     if (!IO_IS_WRITABLE(fh))
     {
+        errno = EPERM;
         return 0;
     }
 
-    if (IO_IS_SCREEN(fh))
+    c = IO_DISPATCH(fh)->write_byte(fh, c);
+    if (c < 0)
     {
-        if (c == '\n')
-            os_newline();
-        else
-            os_writec(c);
-        return c;
-    }
-
-    err = _swix(OS_BPut, _INR(0, 1), c, fh->_fileno);
-    if (err)
-    {
-        __fs_seterrno(err);
-        return -1;
+        errno = -c;
+        c = EOF;
     }
     else
     {
         /* No error, so unmark as any character pushed back */
         fh->_flags &= ~ _IO_CHARPUSHED;
     }
-
     return c;
 }
 
@@ -133,11 +108,6 @@ int putc(int c, FILE *fh)
 
 int fputs(const char *str, FILE *fh)
 {
-    if (!fh)
-    {
-        errno = EBADF;
-        return -1;
-    }
     if (str == NULL)
         str = "<NULL>";
 

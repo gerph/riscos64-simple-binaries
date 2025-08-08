@@ -11,7 +11,7 @@
 #include "time/time-clock.h"
 #include "signal-init.h"
 #include "heap/init.h"
-#include "io/io-file-init.h"
+#include "io/io-init.h"
 #include "sysvars/sysvars-init.h"
 //#include "swis_os.h"
 #include "clib.h"
