@@ -11,6 +11,9 @@
 
 #define MAX_SEARCH (250)
 
+/* The highest addressable location */
+#define MEMORY_LIMIT (0xFFFFFFFFu)
+
 /*************************************************** Gerph *********
  Function:      _kernel_procname
  Description:   For a given PC, return the procedure name
@@ -22,6 +25,9 @@ const char *_kernel_procname(uint64_t pc)
     uint32_t *z = (uint32_t *)pc;
     const char *name = NULL;
     int i;
+
+    if (pc > MEMORY_LIMIT)
+        return NULL;
 
     /* I search up to 100 words before the pc looking for the marker that    */
     /* shows me where the function name is.                                  */
@@ -58,16 +64,20 @@ int _kernel_unwind(_kernel_unwindblock *inout, char **language)
         return 1; /* Got a stack frame */
     }
 
-    if (((uint64_t)fp) & 3 || ((uint64_t)fp) < 0x8000)
+    if (((uint64_t)fp) & 3 || ((uint64_t)fp) < 0x8000 || ((uint64_t)fp) > MEMORY_LIMIT)
         return -1; /* Invalid; give up */
 
     /* Roll back to prior entry */
     uint64_t *caller_fp = (uint64_t *)fp[0];
     uint64_t *caller_pc = (uint64_t *)fp[1];
 
-    if (((uint64_t)caller_fp) & 3 || (((uint64_t)caller_fp) < 0x8000 && caller_fp != NULL))
+    if (((uint64_t)caller_fp) & 3 ||
+        (((uint64_t)caller_fp) < 0x8000 && caller_fp != NULL) ||
+        ((uint64_t)caller_fp) > MEMORY_LIMIT)
         return -1; /* Invalid FP; give up */
-    if (((uint64_t)caller_pc) & 3 || ((uint64_t)caller_pc) < 0x8000)
+    if (((uint64_t)caller_pc) & 3 ||
+        ((uint64_t)caller_pc) < 0x8000 ||
+        ((uint64_t)caller_pc) > MEMORY_LIMIT)
         return -1; /* Invalid PC; give up */
 
     inout->fp = (uint64_t)(caller_fp);

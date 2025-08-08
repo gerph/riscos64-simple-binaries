@@ -11,6 +11,7 @@
 ### Changed
 - clib: The error handler now reports a backtrace when it is called.
 - time: Reading lines or characters from `stdin` now freezes the `clock()`.
+- backtrace: Checks for address range of parameters, to identify corrupt stacks.
 
 ### Fixed
 - stdio: Fix for `freopen` on stdin, stdout, or stderr causing a backtrace.
