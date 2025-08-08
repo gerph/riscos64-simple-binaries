@@ -4,18 +4,14 @@
 
 #include "kernel.h"
 #include "swis.h"
+#include "swis_os.h"
 
 #include "time-clock.h"
 
 static int64_t base_time;
 static int64_t frozen_time;
 
-uint64_t __sysclock(void)
-{
-    _kernel_swi_regs regs;
-    _kernel_swi(OS_ReadMonotonicTime, NULL, &regs);
-    return regs.r[0];
-}
+#define __sysclock() os_readmonotonictime()
 
 /*************************************************** Gerph *********
  Function:      __clock_init
@@ -25,7 +21,6 @@ uint64_t __sysclock(void)
  ******************************************************************/
 void __clock_init(void)
 {
-    base_time = 0;
     base_time = __sysclock();
     frozen_time = 0;
 }

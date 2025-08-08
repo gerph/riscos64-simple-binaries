@@ -1,7 +1,12 @@
 #ifndef SWIS_OS_H
 #define SWIS_OS_H
 
+#include <stdint.h>
 #include "kernel.h"
+
+// Define this to control whether we use inline SWIs or functions
+#define __INLINE_SWIS_OS
+
 
 #define os_writec __os_writec
 #define os_readc __os_readc
@@ -17,6 +22,7 @@
 #define os_newline __os_newline
 #define os_generateerror __os_generateerror
 #define os_readescapestate __os_readescapestate
+#define os_readmonotonictime __os_readmonotonictime
 #define os_module __os_module
 #define os_heap __os_heap
 #define os_byte_out1 __os_byte_out1
@@ -59,5 +65,25 @@ int os_byte_out1(int r0, int r1, int r2);
 
 _kernel_oserror *os_changeenvironment(int envnumber, intptr_t handler, intptr_t workspace, intptr_t buffer,
                                       intptr_t *old_handler);
+
+/* Inline definitions - probably not worthwhile, but we have the option */
+#if defined(__riscos64) && defined(__GNUC__) && defined(__INLINE_SWIS_OS)
+static inline uint64_t os_readmonotonictime(void)
+{
+  register uint64_t ret asm("r0");
+  __asm __volatile (
+            "mov\tx10, 0x42\n"
+            "add\tx10, x10, 0x20000\n"
+            "svc\t0x00000000\n"
+            "csel\tx0, x0, xzr, VC\n"
+            :   "=r" (ret)
+            :
+            :   "x10"
+            );
+    return ret;
+}
+#else
+uint64_t os_readmonotonictime(void);
+#endif
 
 #endif
